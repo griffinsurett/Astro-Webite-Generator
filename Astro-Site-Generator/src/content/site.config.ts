@@ -38,8 +38,8 @@ const siteConfigSchema = z.object({
 const siteConfig = siteConfigSchema.parse({
   title: "Your Site Title",
   description: "A brief description of your site.",
-  logo: "/assets/astro.svg", // Ensure this path is correct
-  favicon: "/assets/favicon.svg", // Ensure this path is correct
+  logo: "../assets/transparent-bg-pronto.png", // Ensure this path is correct
+  favicon: "../assets/transparent-bg-pronto.png", // Ensure this path is correct
   navigation: [
     { name: "Home", href: "/" },
     { name: "Services", href: "/services" },
