@@ -19,10 +19,12 @@ const services = defineCollection({
 });
 
 // Define the 'projects' collection using the base schema
-const projects = defineCollection({
-  type: 'content',
-  schema: baseSchema, // No extensions needed
-});
+// const projects = defineCollection({
+//   type: 'content',
+//   schema: baseSchema, // No extensions needed
+// });
 
 // Export all collections
-export const collections = { services, projects };
+export const collections = { services, 
+  // projects 
+};

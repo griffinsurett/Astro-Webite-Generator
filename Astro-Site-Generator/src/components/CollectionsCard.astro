@@ -1,23 +1,18 @@
 ---
-// src/components/CollectionCard.astro
-const { title, description, slug, icon, image, price, date, author, collection } = Astro.props;
-const { formatCollectionName } = await import('../utils/collections.js');
+/* src/components/CollectionCard.astro */
+const { title, description, slug, icon, featuredImage, collection } = Astro.props;
 ---
 <article class="collection-card">
   <h2>
-    {icon ? icon : '📄'} 
+    {icon || '📄'}
     <a href={`/${collection}/${slug}`}>{title}</a>
   </h2>
   
-  {image && (
-    <img src={image} alt={title} class="collection-image" />
-  )}
+  <!-- {featuredImage && ( -->
+    <img src={featuredImage} alt={`${title} Featured Image`} class="collection-image" loading="lazy" />
+  <!-- )} -->
   
   <p>{description}</p>
-  
-  {price && <p><strong>Price:</strong> ${price}</p>}
-  {date && <p><strong>Date:</strong> {date}</p>}
-  {author && <p><strong>Author:</strong> {author}</p>}
 </article>
 
 <style>

@@ -43,6 +43,7 @@ const siteConfig = siteConfigSchema.parse({
   navigation: [
     { name: "Home", href: "/" },
     { name: "Services", href: "/services" },
+    { name: "Projects", href: "/projects" },
     // Add more navigation links as needed
   ],
   footer: {

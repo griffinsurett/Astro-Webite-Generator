@@ -1,5 +1,5 @@
 ---
-// /[collection] 
+/* src/pages/[collection]/index.astro */
 import CollectionLayout from '../../layouts/CollectionLayout.astro';
 import CollectionCard from '../../components/CollectionsCard.astro'; // Ensure correct naming
 import { fetchCollectionItems, formatCollectionName, generateCollectionPaths } from '../../utils/collections.js';
@@ -7,12 +7,19 @@ import { fetchCollectionItems, formatCollectionName, generateCollectionPaths } f
 const { collection } = Astro.params;
 
 // Fetch items from the specified collection
-const items = await fetchCollectionItems(collection);
+let items;
+let pageTitle;
+let pageDescription;
 
-// Format collection name for display
-const formattedCollectionName = formatCollectionName(collection);
-const pageTitle = `Our ${formattedCollectionName}`;
-const pageDescription = `Explore our ${collection} and discover what we offer.`;
+try {
+  items = await fetchCollectionItems(collection);
+  const formattedCollectionName = formatCollectionName(collection);
+  pageTitle = `Our ${formattedCollectionName}`;
+  pageDescription = `Explore our ${collection} and discover what we offer.`;
+} catch (error) {
+  // Redirect to custom 404 page if collection is not found
+  Astro.redirect('/404');
+}
 
 // Export the getStaticPaths function
 export async function getStaticPaths() {
@@ -34,7 +41,7 @@ export async function getStaticPaths() {
           slug={item.data.slug}
           icon={item.data.icon}
           collection={collection}
-          image={item.data.image}
+          featuredImage={item.data.featuredImage}
           price={item.data.price}
           date={item.data.date}
           author={item.data.author}
