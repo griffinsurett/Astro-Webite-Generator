@@ -6,11 +6,10 @@ const baseSchema = z.object({
   title: z.string(),
   slug: z
     .string()
-    .regex(/^[a-z0-9-]+$/, 'Invalid slug format. Must contain only lowercase letters, numbers, and hyphens.')
-    .optional(),
+    .regex(/^[a-z0-9-]+$/, 'Invalid slug format. Must contain only lowercase letters, numbers, and hyphens.'),
   description: z.string(),
-  icon: z.string().optional(), // Moved icon to base schema
-  featuredImage: z.string().optional(),  // Added featuredImage to base schema
+  icon: z.string().optional(),
+  featuredImage: z.string().optional(),
 });
 
 // Define the 'services' collection using the base schema
