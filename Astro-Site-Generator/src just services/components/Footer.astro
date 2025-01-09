@@ -1,0 +1,46 @@
+---
+const { text, links } = Astro.props;
+---
+<footer>
+  <p>{text}</p>
+  <ul class="footer-links">
+    {links.map((link) => (
+      <li>
+        <a href={link.href}>{link.name}</a>
+      </li>
+    ))}
+  </ul>
+</footer>
+
+<style>
+  /* Reset list styles for <ul> and <li> */
+  .footer-links {
+    list-style: none; /* Remove bullets from the <ul> */
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+  }
+
+  .footer-links li {
+    list-style: none; /* Remove bullets from the <li> */
+    margin: 0; /* Reset margin for <li> */
+    padding: 0; /* Reset padding for <li> */
+  }
+
+  footer {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .footer-links li a {
+    text-decoration: none;
+  }
+
+  .footer-links li a:hover {
+    text-decoration: underline;
+  }
+</style>

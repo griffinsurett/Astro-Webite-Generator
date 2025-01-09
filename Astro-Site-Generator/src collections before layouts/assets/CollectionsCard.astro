@@ -1,0 +1,46 @@
+---
+const { title, description, slug, icon, image, price, date, author, collection } = Astro.props;
+
+// Determine the URL path based on the collection name
+const collectionPath = `/${collection.toLowerCase()}`;
+---
+<article class="collection-card">
+  <h2>
+    {icon ? icon : '📄'} <a href={`${collectionPath}/${slug}`}>{title}</a>
+  </h2>
+  
+  {image && (
+    <img src={image} alt={title} class="collection-image" />
+  )}
+  
+  <p>{description}</p>
+  
+  {price && <p><strong>Price:</strong> ${price}</p>}
+  {date && <p><strong>Date:</strong> {date}</p>}
+  {author && <p><strong>Author:</strong> {author}</p>}
+</article>
+
+<style>
+  .collection-card {
+    border: 1px solid #eaeaea;
+    padding: 1rem;
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+  }
+  .collection-card:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
+  .collection-card h2 {
+    margin-bottom: 0.5rem;
+  }
+  .collection-card a {
+    text-decoration: none;
+    color: inherit;
+  }
+  .collection-card img.collection-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+  }
+</style>

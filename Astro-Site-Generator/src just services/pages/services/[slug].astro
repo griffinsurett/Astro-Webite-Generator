@@ -1,0 +1,39 @@
+---
+import { getCollection, getEntry, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+// Define the `getStaticPaths` function to generate paths for all services
+export async function getStaticPaths() {
+  const services = await getCollection('services');
+  return services.map((service) => ({
+    params: { slug: service.slug },
+  }));
+}
+
+const { slug } = Astro.params;
+
+// Fetch the service entry by slug
+const service = await getEntry('services', slug);
+
+// If the service doesn't exist, throw a 404 error
+if (!service) {
+  throw new Error(`Service with slug "${slug}" not found`);
+}
+
+// Render the service content
+const { Content } = await render(service);
+
+// Destructure data for easier access
+const { title, description, icon } = service.data;
+---
+<Layout title={`${title} | Our Services`} description={description}>
+  <article>
+    <header>
+      <h1>{icon ? icon : '💼'} {title}</h1>
+      <p>{description}</p>
+    </header>
+    <section>
+      <Content />
+    </section>
+  </article>
+</Layout>

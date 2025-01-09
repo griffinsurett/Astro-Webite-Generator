@@ -1,0 +1,20 @@
+---
+const { title, description, icon } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{title} | Our Services</title>
+    <meta name="description" content={description} />
+  </head>
+  <body>
+    <header>
+      <h1>{icon} {title}</h1>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>

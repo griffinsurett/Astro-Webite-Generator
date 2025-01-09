@@ -1,0 +1,42 @@
+---
+// content imports
+import { getCollection } from 'astro:content';
+
+// component imports
+import ServiceCard from '../../components/ServiceCard.astro';
+import Layout from '../../layouts/Layout.astro';
+
+const services = await getCollection('services');
+---
+<Layout title="Our Services" description="Explore the services we offer to help your business grow.">
+  <header>
+    <h1>Our Services</h1>
+    <p>Discover what we can do for you.</p>
+  </header>
+  <main>
+    <section class="services-list">
+      {services.map(service => (
+        <ServiceCard
+          key={service.id}
+          title={service.data.title}
+          description={service.data.description}
+          slug={service.data.slug}
+          icon={service.data.icon}
+        />
+      ))}
+    </section>
+  </main>
+</Layout>
+
+<style>
+  .services-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem 0;
+  }
+  header {
+    text-align: center;
+    padding: 2rem 0;
+  }
+</style>

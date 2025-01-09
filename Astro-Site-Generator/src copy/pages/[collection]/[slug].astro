@@ -1,0 +1,82 @@
+---
+import { getEntry, getCollection, render } from 'astro:content';
+import CollectionItemLayout from '../../layouts/CollectionItemLayout.astro'; // Use CollectionItemLayout
+import { isValidCollection, formatCollectionName, getAvailableCollections } from '../../utils/collections.js';
+
+const { collection, slug } = Astro.params;
+
+// Validate the collection
+if (!isValidCollection(collection)) {
+  throw new Error(`Collection "${collection}" not found.`);
+}
+
+// Fetch the item by slug from the specified collection
+const item = await getEntry(collection, slug);
+
+if (!item) {
+  throw new Error(`Item with slug "${slug}" not found in collection "${collection}".`);
+}
+
+// Render the markdown content
+const { Content } = await render(item);
+
+// Destructure data for easier access
+const { title, description, icon, image, price, date, author } = item.data;
+
+// Set page metadata
+const pageTitle = `${title} | ${formatCollectionName(collection)}`;
+
+// Export the getStaticPaths function
+export async function getStaticPaths() {
+  const collections = getAvailableCollections();
+  const paths = [];
+
+  for (const col of collections) {
+    const items = await getCollection(col);
+    for (const itm of items) {
+      paths.push({
+        params: {
+          collection: col,
+          slug: itm.slug,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+---
+<CollectionItemLayout title={pageTitle} description={description} image={image}>
+  <article>
+    <header>
+      <h1>{icon ? icon : '📄'} {title}</h1>
+      <p>{description}</p>
+      {price && <p><strong>Price:</strong> ${price}</p>}
+      {date && <p><strong>Date:</strong> {date}</p>}
+      {author && <p><strong>Author:</strong> {author}</p>}
+      {image && <img src={image} alt={title} class="item-image" />}
+    </header>
+    <section>
+      <Content />
+    </section>
+  </article>
+</CollectionItemLayout>
+
+<style>
+  article {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem 0;
+  }
+  header h1 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  img.item-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+</style>
