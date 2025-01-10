@@ -1,0 +1,69 @@
+---
+// component imports
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Section from '../components/Section.astro';
+
+// content import
+import siteConfig from '../content/site.config.js'; // Adjust the path if necessary
+
+const { title = siteConfig.title, description = siteConfig.description } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={siteConfig.logo} />
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={siteConfig.logo} />
+  </head>
+  <body>
+    <Header 
+      logo={siteConfig.logo} 
+      navigation={siteConfig.navigation} 
+      siteTitle={siteConfig.title} 
+    />
+    
+    <main>
+      <Section>
+        <slot />
+      </Section>
+    </main>
+    
+    <Footer 
+      text={siteConfig.footer.text} 
+      links={siteConfig.footer.links} 
+    />
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  main {
+    padding: 2rem;
+    min-height: 80vh;
+  }
+</style>
