@@ -10,11 +10,10 @@
  * - viewAllHref: (Optional) URL for the "View All" button.
  * - viewAllText: (Optional) Text for the "View All" button.
  */
-
- import { getCollectionPageData } from '../utils/collections.js';
+import { getCollectionPageData, formatCollectionName } from '../utils/collections.js';
 import Button from './Button.astro'; // Import the Button component
 
-const { collection, children, viewAllHref = null, viewAllText = 'View All' } = Astro.props;
+const { collection, children, viewAllHref, viewAllText } = Astro.props;
 
 // Validate that `collection` prop is provided
 if (!collection || typeof collection !== 'string') {
@@ -34,6 +33,16 @@ try {
 
 // Destructure necessary data
 const { pageTitle, pageDescription } = pageData;
+
+// Dynamically generate `viewAllHref` and `viewAllText` if not provided
+const finalViewAllHref = viewAllHref || `/${collection}`;
+const finalViewAllText = viewAllText || `View All ${formatCollectionName(collection)}s`;
+
+// Get the current URL path
+const currentPath = Astro.url.pathname;
+
+// Determine if the button should be hidden
+const isCurrentPageCollectionRoot = currentPath === `/${collection}`;
 ---
 <div class="content-template">
   <!-- Collection Header -->
@@ -48,9 +57,9 @@ const { pageTitle, pageDescription } = pageData;
   </div>
 
   <!-- "View All" Button -->
-  {viewAllHref && (
+  {!isCurrentPageCollectionRoot && (
     <div class="view-all-container">
-      <Button text={viewAllText} href={viewAllHref} className="primary-button" />
+      <Button text={finalViewAllText} href={finalViewAllHref} className="primary-button" />
     </div>
   )}
 </div>

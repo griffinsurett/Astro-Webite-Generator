@@ -33,8 +33,6 @@ export async function getStaticPaths() {
   <Section className="collection-header">
     <ContentTemplate 
       collection={collection} 
-      viewAllHref={`/${collection}`} 
-      viewAllText={`View All ${formatCollectionName(collection)}s`}
     >
       <ItemsTemplate
         collection={collection}
