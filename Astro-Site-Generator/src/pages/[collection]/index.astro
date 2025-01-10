@@ -1,7 +1,14 @@
 ---
-/* src/pages/[collection]/index.astro */
+// [collection]/[slug].astro
+
+// layout import
 import CollectionLayout from '../../layouts/CollectionLayout.astro';
-import CollectionCard from '../../components/CollectionsCard.astro'; // Ensure correct naming
+
+// components imports
+import CollectionCard from '../../components/CollectionsCard.astro';
+import Section from '../../components/Section.astro'; // Import the Section component
+
+// utils imports
 import { fetchCollectionItems, formatCollectionName, generateCollectionPaths } from '../../utils/collections.js';
 
 const { collection } = Astro.params;
@@ -27,15 +34,16 @@ export async function getStaticPaths() {
 }
 ---
 <CollectionLayout title={pageTitle} description={pageDescription}>
-  <header>
+  <Section className="collection-header">
     <h1>{pageTitle}</h1>
     <p>{pageDescription}</p>
-  </header>
-  <main>
-    <section class="collections-list">
+  </Section>
+  
+  <Section className="collections-list-section">
+    <div class="collections-list">
       {items.map(item => (
         <CollectionCard
-          key={item.slug} // Use slug as a unique key
+          key={item.slug}
           title={item.title}
           description={item.description}
           slug={item.slug}
@@ -44,19 +52,23 @@ export async function getStaticPaths() {
           featuredImage={item.featuredImage}
         />
       ))}
-    </section>
-  </main>
+    </div>
+  </Section>
 </CollectionLayout>
 
 <style>
+  .collection-header {
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .collections-list-section {
+    padding: 2rem 0;
+  }
+
   .collections-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
-    padding: 2rem 0;
-  }
-  header {
-    text-align: center;
-    padding: 2rem 0;
   }
 </style>

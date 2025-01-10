@@ -2,10 +2,12 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "strict": false,               // Disable all strict type-checking options
-    "noImplicitAny": false,        // Allow variables to have an 'any' type implicitly
+    "strict": false,               // Disables all strict type-checking
+    "noImplicitAny": false,        // Allows 'any' type implicitly
+    "noImplicitThis": false,       // Allows 'this' to have implicit 'any' type
     "esModuleInterop": true,
-    "skipLibCheck": true,
+    "allowJs": true,               // Allows JavaScript files in the project
+    "skipLibCheck": true,          // Skips type-checking of library files
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {

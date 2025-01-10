@@ -1,7 +1,14 @@
 ---
 // [collection]/[slug].astro
+
+// layout import
 import CollectionItemLayout from '../../layouts/CollectionItemLayout.astro';
+
+// utils imports
 import { getValidatedCollectionItem, formatCollectionName, generateItemPaths } from '../../utils/collections.js';
+
+// components imports
+import Image from '../../components/Image.astro'; // Import the Image component
 
 const { collection, slug } = Astro.params;
 
@@ -30,14 +37,13 @@ export async function getStaticPaths() {
     <header>
       <h1>{icon || '📄'} {title}</h1>
       <p>{description}</p>
-      {featuredImage && <img src={featuredImage} alt={`${title} Featured Image`} class="item-image" loading="lazy" />}
+      {featuredImage && <Image src={featuredImage} alt={`${title} Featured Image`} className="item-image" />}
     </header>
     <!-- Additional content can be added here -->
   </article>
 </CollectionItemLayout>
 
 <style>
-  /* Your styles here */
   .item-image {
     max-width: 100%;
     height: auto;

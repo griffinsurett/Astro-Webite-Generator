@@ -1,6 +1,10 @@
 ---
+// components imports
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
+import Section from '../components/Section.astro';
+
+// content import
 import siteConfig from '../content/site.config.js'; // Adjust the path if necessary
 
 const { title = siteConfig.title, description = siteConfig.description, image = siteConfig.logo } = Astro.props;
@@ -9,7 +13,7 @@ const { title = siteConfig.title, description = siteConfig.description, image = 
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
@@ -33,9 +37,13 @@ const { title = siteConfig.title, description = siteConfig.description, image = 
       navigation={siteConfig.navigation} 
       siteTitle={siteConfig.title} 
     />
+    
     <main>
-      <slot />
+      <Section>
+        <slot />
+      </Section>
     </main>
+    
     <Footer 
       text={siteConfig.footer.text} 
       links={siteConfig.footer.links} 

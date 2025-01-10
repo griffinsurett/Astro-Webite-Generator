@@ -1,17 +1,31 @@
 ---
-// component imports
+// layout import
 import Layout from '../layouts/Layout.astro';
+
+// components imports
+import Button from '../components/Button.astro';
+import Image from '../components/Image.astro';
+import Section from '../components/Section.astro';
 ---
 <Layout title="Home Page" description="Welcome to our Astro-powered website.">
-  <section>
-    <h1>Welcome to My Website</h1>
-    <p>This is the homepage content.</p>
-  </section>
+  <Section>
+    <h1>Welcome to Our Website</h1>
+    <p>Your go-to platform for services and projects.</p>
+    <Button text="Explore Services" href="/services" className="primary-button" />
+  </Section>
+  <Section className="highlight-section" style="background-color: #e0f7fa;">
+    <Image src="/assets/astro.svg" alt="Astro Logo" className="hero-image" />
+    <p>Experience seamless performance with Astro!</p>
+  </Section>
 </Layout>
 
 <style>
-  section {
+  .primary-button {
+    background-color: #007bff;
+    color: white;
+  }
+  .highlight-section {
     text-align: center;
-    padding: 2rem;
+    padding: 3rem 0;
   }
 </style>

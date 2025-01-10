@@ -26,15 +26,13 @@ const collectionMetadataSchema = z.object({
 
 // Define the 'services' collection
 const services = defineCollection({
-  schema: baseSchema.extend({
-    project: reference('projects').optional(), // Single reference to a related project
-  }),
+  schema: baseSchema,
   metadata: collectionMetadataSchema.parse({
     title: "Services",
     subtitle: "Our offerings to help your business grow",
     description: "A collection of services provided by the company, such as SEO, web development, and more.",
-    icon: "https://via.placeholder.com/64",
-    featuredImage: "https://via.placeholder.com/800x400",
+    icon: "🔍",
+    featuredImage: "../assets/background.svg", // Directly reference the static path
     hasPage: true, // Accessible at /services
     itemsHasPage: true, // Individual services accessible at /services/:slug
   }),
@@ -45,9 +43,8 @@ const services = defineCollection({
       slug: "seo-optimization",
       description: "Optimize your website to rank higher on search engines and attract more visitors.",
       icon: "🔍",
-      featuredImage: "https://via.placeholder.com/600x400",
+      featuredImage: "../assets/background.svg", // Directly reference the static path
       hasPage: true,
-      project: "project-alpha", // Reference a related project by slug
     },
     {
       title: "Web Development",
@@ -55,8 +52,7 @@ const services = defineCollection({
       slug: "web-development",
       description: "Professional web development services to build responsive and scalable websites.",
       icon: "🖥️",
-      featuredImage: "https://via.placeholder.com/600x400",
-      project: "project-beta", // Reference a related project by slug
+      featuredImage: "../assets/background.svg", // Directly reference the static path
     },
   ],
 });
@@ -70,8 +66,8 @@ const projects = defineCollection({
     title: "Projects",
     subtitle: "Showcase of our work",
     description: "A portfolio of projects that demonstrate our expertise and capabilities.",
-    icon: "https://via.placeholder.com/64",
-    featuredImage: "https://via.placeholder.com/800x400",
+    icon: "🔍",
+    featuredImage: "../assets/background.svg", // Directly reference the static path
     hasPage: true, // Accessible at /projects
     itemsHasPage: true, // Individual projects accessible at /projects/:slug
   }),
@@ -82,9 +78,9 @@ const projects = defineCollection({
       slug: "project-alpha",
       description: "A groundbreaking project that revolutionizes technology.",
       icon: "🚀",
-      featuredImage: "https://via.placeholder.com/600x400",
+      featuredImage: "../assets/background.svg", // Directly reference the static path
       hasPage: true,
-      service: "seo-optimization", // Reference a related service by slug
+      service: "web-development", // Reference a related service by slug
     },
     {
       title: "Project Beta",
@@ -92,7 +88,7 @@ const projects = defineCollection({
       slug: "project-beta",
       description: "An innovative project showcasing cutting-edge design.",
       icon: "🎨",
-      featuredImage: "https://via.placeholder.com/600x400",
+      featuredImage: "../assets/background.svg", // Directly reference the static path
       service: "web-development", // Reference a related service by slug
     },
   ],

@@ -1,0 +1,30 @@
+---
+const { text, href = null, type = "button", onClick = null, className = "" } = Astro.props;
+---
+{href ? (
+  <a href={href} class={`button ${className}`} role="button">{text}</a>
+) : (
+  <!-- @ts-ignore -->
+  <button type={type} on:click={onClick} class={`button ${className}`}>{text}</button>
+)}
+
+<style>
+  .button {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s, border-color 0.2s;
+    color: #333;
+    font-size: 1rem;
+  }
+
+  .button:hover {
+    background-color: #e0e0e0;
+    border-color: #999;
+  }
+</style>
