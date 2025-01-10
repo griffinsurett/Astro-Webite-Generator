@@ -1,0 +1,108 @@
+---
+/**
+ * ItemsTemplate.astro
+ *
+ * A reusable component to display a list of items within a section based on a collection.
+ *
+ * Props:
+ * - collection: The name of the collection to fetch items from.
+ * - ItemComponent: The Astro component used to render each item.
+ * - query: A function that takes `collection` as an argument and returns an array of items.
+ * - columns: Number of items per row on large screens (default: 3).
+ * - gap: Gap between items (default: '1.5rem').
+ * - className: Additional class names for the container (optional).
+ * - viewAllHref: (Optional) URL for the "View All" button.
+ * - viewAllText: (Optional) Text for the "View All" button.
+ */
+
+ const {
+  collection,
+  ItemComponent,
+  query, // New prop: Function to fetch items
+  columns = 3,
+  gap = '1.5rem',
+  className = '',
+  viewAllHref = null,
+  viewAllText = 'View All',
+} = Astro.props;
+
+// Validate that `query` is a function
+if (typeof query !== 'function') {
+  throw new Error(`The "query" prop must be a function.`);
+}
+
+// Fetch items using the provided query function
+const items = await query(collection);
+
+// Determine if there are items to display
+const hasItems = Array.isArray(items) && items.length > 0;
+---
+{hasItems ? (
+  <div class={`items-template ${className}`}>
+    <div class="items-list">
+      {items.map((item) => (
+        <ItemComponent key={item.slug} {...item} collection={collection} />
+      ))}
+    </div>
+    
+    {viewAllHref && (
+      <div class="view-all-container">
+        <a href={viewAllHref} class="primary-button">{viewAllText}</a>
+      </div>
+    )}
+  </div>
+) : (
+  <p class="no-items">No items available.</p>
+)}
+
+<style>
+  .items-template {
+    width: 100%;
+  }
+
+  .items-list {
+    display: grid;
+    grid-template-columns: repeat(${columns}, 1fr);
+    gap: ${gap};
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .items-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .items-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .view-all-container {
+    text-align: center;
+    margin-top: 1.5rem;
+  }
+
+  .primary-button {
+    padding: 0.5rem 1rem;
+    background-color: #007acc;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    display: inline-block;
+  }
+
+  .primary-button:hover {
+    background-color: #005fa3;
+  }
+
+  .no-items {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 1rem 0;
+  }
+</style>

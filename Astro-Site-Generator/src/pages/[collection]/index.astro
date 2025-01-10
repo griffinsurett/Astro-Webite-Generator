@@ -1,62 +1,48 @@
 ---
-// [collection]/[slug].astro
+/**
+ * /[collection]/index.astro
+ *
+ * Renders the main page for a collection, displaying all items.
+ */
 
-// layout imports
+// Layout imports
 import CollectionLayout from "../../layouts/CollectionLayout.astro";
 
-// component imports
+// Component imports
+import ItemsTemplate from "../../components/ItemsTemplate.astro"; // Import the updated ItemsTemplate
 import CollectionCard from "../../components/CollectionsCard.astro";
 import Section from "../../components/Section.astro";
 
-// utils imports
+// Utility imports
 import {
-  getCollectionPageData,
+  formatCollectionName,
   generateCollectionPaths,
+  fetchCollectionItems, // Import fetchCollectionItems
 } from "../../utils/collections.js";
 
 const { collection } = Astro.params;
-
-let pageData;
-
-try {
-  pageData = await getCollectionPageData(collection);
-} catch (error) {
-  // Log the error for debugging purposes
-  console.error(error.message);
-  // Redirect to custom 404 page if collection is not found
-  Astro.redirect("/404");
-}
-
-const { items, pageTitle, pageDescription } = pageData;
 
 // Export the getStaticPaths function
 export async function getStaticPaths() {
   return await generateCollectionPaths();
 }
 ---
-
-<CollectionLayout title={pageTitle} description={pageDescription}>
+<CollectionLayout title={`Our ${formatCollectionName(collection)}`} description={`Explore our ${formatCollectionName(collection)} and discover what we offer.`}>
   <Section className="collection-header">
-    <h1>{pageTitle}</h1>
-    <p>{pageDescription}</p>
+    <h1>{`Our ${formatCollectionName(collection)}`}</h1>
+    <p>{`Explore our ${formatCollectionName(collection)} and discover what we offer.`}</p>
   </Section>
 
   <Section className="collections-list-section">
-    <div class="collections-list">
-      {
-        items.map((item) => (
-          <CollectionCard
-            key={item.slug}
-            title={item.title}
-            description={item.description}
-            slug={item.slug}
-            icon={item.icon}
-            collection={collection}
-            featuredImage={item.featuredImage}
-          />
-        ))
-      }
-    </div>
+    <ItemsTemplate
+      collection={collection}
+      ItemComponent={CollectionCard}
+      query={fetchCollectionItems} // Pass the fetchCollectionItems function
+      columns={3} // Adjust as needed
+      gap="1.5rem"
+      viewAllHref={`/${collection}`}
+      viewAllText={`View All ${formatCollectionName(collection)}s`} // Optional: Customize button text
+    />
   </Section>
 </CollectionLayout>
 
@@ -68,11 +54,5 @@ export async function getStaticPaths() {
 
   .collections-list-section {
     padding: 2rem 0;
-  }
-
-  .collections-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
   }
 </style>

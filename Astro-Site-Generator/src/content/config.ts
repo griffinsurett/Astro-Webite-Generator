@@ -1,3 +1,4 @@
+// src/content/config.ts
 import { defineCollection, z, reference } from 'astro:content';
 
 // Enhanced base schema for all items
@@ -11,6 +12,7 @@ const baseSchema = z.object({
   icon: z.string().optional(),
   featuredImage: z.string().url().optional(),
   hasPage: z.boolean().optional(), // Per-item override for `hasPage`
+  featured: z.boolean().optional(), // New field to mark as featured
 });
 
 // Metadata schema for collections
@@ -32,9 +34,9 @@ const services = defineCollection({
     subtitle: "Our offerings to help your business grow",
     description: "A collection of services provided by the company, such as SEO, web development, and more.",
     icon: "🔍",
-    featuredImage: "../assets/background.svg", 
-    hasPage: true, 
-    itemsHasPage: true, 
+    featuredImage: "../assets/background.svg",
+    hasPage: true, // Accessible at /services
+    itemsHasPage: true, // Individual services accessible at /services/:slug by default
   }),
   data: [
     {
@@ -43,7 +45,8 @@ const services = defineCollection({
       slug: "seo-optimization",
       description: "Optimize your website to rank higher on search engines and attract more visitors.",
       icon: "🔍",
-      featuredImage: "../assets/background.svg", 
+      featuredImage: "../assets/background.svg",
+      featured: true, // This service is featured
     },
     {
       title: "Web Development",
@@ -51,24 +54,27 @@ const services = defineCollection({
       slug: "web-development",
       description: "Professional web development services to build responsive and scalable websites.",
       icon: "🖥️",
-      featuredImage: "../assets/background.svg", 
+      featuredImage: "../assets/background.svg",
+      featured: true, // This service is featured
+      // featured is optional; defaults to false if not set
     },
+    // Add more services as needed
   ],
 });
 
 // Define the 'projects' collection
 const projects = defineCollection({
   schema: baseSchema.extend({
-    service: reference('services').optional(), 
+    services: reference('services').array().optional(), // Multiple references
   }),
   metadata: collectionMetadataSchema.parse({
     title: "Projects",
     subtitle: "Showcase of our work",
     description: "A portfolio of projects that demonstrate our expertise and capabilities.",
     icon: "🔍",
-    featuredImage: "../assets/background.svg", 
-    hasPage: true, 
-    itemsHasPage: true, 
+    featuredImage: "../assets/background.svg",
+    hasPage: true, // Accessible at /projects
+    itemsHasPage: true, // Individual projects accessible at /projects/:slug by default
   }),
   data: [
     {
@@ -77,9 +83,9 @@ const projects = defineCollection({
       slug: "project-alpha",
       description: "A groundbreaking project that revolutionizes technology.",
       icon: "🚀",
-      featuredImage: "../assets/background.svg", // Directly reference the static path
-      // hasPage: true,
+      featuredImage: "../assets/background.svg",
       services: ["web-development", "seo-optimization"], // Multiple related services
+      featured: true, // This project is featured
     },
     {
       title: "Project Beta",
@@ -87,9 +93,11 @@ const projects = defineCollection({
       slug: "project-beta",
       description: "An innovative project showcasing cutting-edge design.",
       icon: "🎨",
-      featuredImage: "../assets/background.svg", // Directly reference the static path
+      featuredImage: "../assets/background.svg",
       services: ["web-development"], // Single service in an array
+      // featured is optional; defaults to false if not set
     },
+    // Add more projects as needed
   ],
 });
 

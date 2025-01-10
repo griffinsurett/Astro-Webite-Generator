@@ -179,3 +179,14 @@ export const getCollectionItemPageData = async (collection, slug) => {
 
   return { ...item, pageTitle };
 };
+
+/**
+ * Fetches all featured items from a specified collection.
+ * @param {string} collection - The name of the collection.
+ * @returns {Array<Object>} - An array of featured collection items.
+ * @throws {Error} - If the collection is not valid.
+ */
+export const fetchFeaturedItems = async (collection) => {
+  const items = await fetchCollectionItems(collection);
+  return items.filter(item => item.featured === true);
+};
