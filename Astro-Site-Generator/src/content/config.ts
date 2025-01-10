@@ -32,9 +32,9 @@ const services = defineCollection({
     subtitle: "Our offerings to help your business grow",
     description: "A collection of services provided by the company, such as SEO, web development, and more.",
     icon: "🔍",
-    featuredImage: "../assets/background.svg", // Directly reference the static path
-    hasPage: true, // Accessible at /services
-    itemsHasPage: true, // Individual services accessible at /services/:slug
+    featuredImage: "../assets/background.svg", 
+    hasPage: true, 
+    itemsHasPage: true, 
   }),
   data: [
     {
@@ -43,8 +43,7 @@ const services = defineCollection({
       slug: "seo-optimization",
       description: "Optimize your website to rank higher on search engines and attract more visitors.",
       icon: "🔍",
-      featuredImage: "../assets/background.svg", // Directly reference the static path
-      hasPage: true,
+      featuredImage: "../assets/background.svg", 
     },
     {
       title: "Web Development",
@@ -52,7 +51,7 @@ const services = defineCollection({
       slug: "web-development",
       description: "Professional web development services to build responsive and scalable websites.",
       icon: "🖥️",
-      featuredImage: "../assets/background.svg", // Directly reference the static path
+      featuredImage: "../assets/background.svg", 
     },
   ],
 });
@@ -60,16 +59,16 @@ const services = defineCollection({
 // Define the 'projects' collection
 const projects = defineCollection({
   schema: baseSchema.extend({
-    service: reference('services').optional(), // Single reference to a related service
+    service: reference('services').optional(), 
   }),
   metadata: collectionMetadataSchema.parse({
     title: "Projects",
     subtitle: "Showcase of our work",
     description: "A portfolio of projects that demonstrate our expertise and capabilities.",
     icon: "🔍",
-    featuredImage: "../assets/background.svg", // Directly reference the static path
-    hasPage: true, // Accessible at /projects
-    itemsHasPage: true, // Individual projects accessible at /projects/:slug
+    featuredImage: "../assets/background.svg", 
+    hasPage: true, 
+    itemsHasPage: true, 
   }),
   data: [
     {
@@ -79,8 +78,8 @@ const projects = defineCollection({
       description: "A groundbreaking project that revolutionizes technology.",
       icon: "🚀",
       featuredImage: "../assets/background.svg", // Directly reference the static path
-      hasPage: true,
-      service: "web-development", // Reference a related service by slug
+      // hasPage: true,
+      services: ["web-development", "seo-optimization"], // Multiple related services
     },
     {
       title: "Project Beta",
@@ -89,7 +88,7 @@ const projects = defineCollection({
       description: "An innovative project showcasing cutting-edge design.",
       icon: "🎨",
       featuredImage: "../assets/background.svg", // Directly reference the static path
-      service: "web-development", // Reference a related service by slug
+      services: ["web-development"], // Single service in an array
     },
   ],
 });

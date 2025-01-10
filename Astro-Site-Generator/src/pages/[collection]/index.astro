@@ -1,57 +1,61 @@
 ---
 // [collection]/[slug].astro
 
-// layout import
-import CollectionLayout from '../../layouts/CollectionLayout.astro';
+// layout imports
+import CollectionLayout from "../../layouts/CollectionLayout.astro";
 
-// components imports
-import CollectionCard from '../../components/CollectionsCard.astro';
-import Section from '../../components/Section.astro'; // Import the Section component
+// component imports
+import CollectionCard from "../../components/CollectionsCard.astro";
+import Section from "../../components/Section.astro";
 
 // utils imports
-import { fetchCollectionItems, formatCollectionName, generateCollectionPaths } from '../../utils/collections.js';
+import {
+  getCollectionPageData,
+  generateCollectionPaths,
+} from "../../utils/collections.js";
 
 const { collection } = Astro.params;
 
-// Fetch items from the specified collection
-let items;
-let pageTitle;
-let pageDescription;
+let pageData;
 
 try {
-  items = await fetchCollectionItems(collection);
-  const formattedCollectionName = formatCollectionName(collection);
-  pageTitle = `Our ${formattedCollectionName}`;
-  pageDescription = `Explore our ${formattedCollectionName} and discover what we offer.`;
+  pageData = await getCollectionPageData(collection);
 } catch (error) {
+  // Log the error for debugging purposes
+  console.error(error.message);
   // Redirect to custom 404 page if collection is not found
-  Astro.redirect('/404');
+  Astro.redirect("/404");
 }
+
+const { items, pageTitle, pageDescription } = pageData;
 
 // Export the getStaticPaths function
 export async function getStaticPaths() {
   return await generateCollectionPaths();
 }
 ---
+
 <CollectionLayout title={pageTitle} description={pageDescription}>
   <Section className="collection-header">
     <h1>{pageTitle}</h1>
     <p>{pageDescription}</p>
   </Section>
-  
+
   <Section className="collections-list-section">
     <div class="collections-list">
-      {items.map(item => (
-        <CollectionCard
-          key={item.slug}
-          title={item.title}
-          description={item.description}
-          slug={item.slug}
-          icon={item.icon}
-          collection={collection}
-          featuredImage={item.featuredImage}
-        />
-      ))}
+      {
+        items.map((item) => (
+          <CollectionCard
+            key={item.slug}
+            title={item.title}
+            description={item.description}
+            slug={item.slug}
+            icon={item.icon}
+            collection={collection}
+            featuredImage={item.featuredImage}
+          />
+        ))
+      }
     </div>
   </Section>
 </CollectionLayout>

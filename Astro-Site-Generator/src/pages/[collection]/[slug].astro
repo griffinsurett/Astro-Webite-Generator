@@ -1,43 +1,57 @@
 ---
-// [collection]/[slug].astro
+// /[collection]/[slug].astro
+// layout imports
+import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
 
-// layout import
-import CollectionItemLayout from '../../layouts/CollectionItemLayout.astro';
+// component imports
+import Image from "../../components/Image.astro";
 
 // utils imports
-import { getValidatedCollectionItem, formatCollectionName, generateItemPaths } from '../../utils/collections.js';
-
-// components imports
-import Image from '../../components/Image.astro'; // Import the Image component
+import {
+  getCollectionItemPageData,
+  generateItemPaths,
+} from "../../utils/collections.js";
 
 const { collection, slug } = Astro.params;
 
-// Fetch and validate the collection item
-let item;
+let pageData;
+
 try {
-  item = await getValidatedCollectionItem(collection, slug);
+  pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
+  // Log the error for debugging purposes
+  console.error(error.message);
   // Redirect to 404 if not found
-  Astro.redirect('/404');
+  Astro.redirect("/404");
 }
 
 // Destructure data for easier access
-const { title, description, icon, featuredImage } = item;
-
-// Set page metadata
-const pageTitle = `${title} | ${formatCollectionName(collection)}`;
+const { title, description, icon, featuredImage, pageTitle } = pageData;
 
 // Export the getStaticPaths function
 export async function getStaticPaths() {
   return await generateItemPaths();
 }
 ---
-<CollectionItemLayout title={pageTitle} description={description} image={featuredImage}>
+
+<CollectionItemLayout
+  title={pageTitle}
+  description={description}
+  image={featuredImage}
+>
   <article>
     <header>
-      <h1>{icon || '📄'} {title}</h1>
+      <h1>{icon || "📄"} {title}</h1>
       <p>{description}</p>
-      {featuredImage && <Image src={featuredImage} alt={`${title} Featured Image`} className="item-image" />}
+      {
+        featuredImage && (
+          <Image
+            src={featuredImage}
+            alt={`${title} Featured Image`}
+            className="item-image"
+          />
+        )
+      }
     </header>
     <!-- Additional content can be added here -->
   </article>

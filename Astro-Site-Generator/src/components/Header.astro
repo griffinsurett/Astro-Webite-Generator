@@ -1,8 +1,11 @@
 ---
 // src/components/Header.astro
 const { logo, navigation, siteTitle } = Astro.props;
-const { isValidCollection, formatCollectionName } = await import('../utils/collections.js');
+const { isValidCollection, formatCollectionName } = await import(
+  "../utils/collections.js"
+);
 ---
+
 <header>
   <nav>
     <a href="/">
@@ -10,11 +13,13 @@ const { isValidCollection, formatCollectionName } = await import('../utils/colle
       <img src={logo} alt="Site Logo" width="115" height="48" />
     </a>
     <ul class="nav-links">
-      {navigation.map((item) => (
-        <li>
-          <a href={item.href}>{item.name}</a>
-        </li>
-      ))}
+      {
+        navigation.map((item) => (
+          <li>
+            <a href={item.href}>{item.name}</a>
+          </li>
+        ))
+      }
     </ul>
   </nav>
 </header>
