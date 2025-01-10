@@ -15,7 +15,7 @@ try {
   items = await fetchCollectionItems(collection);
   const formattedCollectionName = formatCollectionName(collection);
   pageTitle = `Our ${formattedCollectionName}`;
-  pageDescription = `Explore our ${formattedCollectionName} and discover what we offer.`;
+  pageDescription = `Explore our ${collection} and discover what we offer.`;
 } catch (error) {
   // Redirect to custom 404 page if collection is not found
   Astro.redirect('/404');
@@ -35,13 +35,13 @@ export async function getStaticPaths() {
     <section class="collections-list">
       {items.map(item => (
         <CollectionCard
-          key={item.slug} // Use slug as a unique key
-          title={item.title}
-          description={item.description}
-          slug={item.slug}
-          icon={item.icon}
+          key={item.id}
+          title={item.data.title}
+          description={item.data.description}
+          slug={item.data.slug}
+          icon={item.data.icon}
           collection={collection}
-          featuredImage={item.featuredImage}
+          featuredImage={item.data.featuredImage}
         />
       ))}
     </section>
