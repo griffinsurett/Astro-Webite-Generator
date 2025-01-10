@@ -9,7 +9,8 @@
 import CollectionLayout from "../../layouts/CollectionLayout.astro";
 
 // Component imports
-import ItemsTemplate from "../../components/ItemsTemplate.astro"; // Import the updated ItemsTemplate
+import ContentTemplate from "../../components/ContentTemplate.astro";
+import ItemsTemplate from "../../components/ItemsTemplate.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 import Section from "../../components/Section.astro";
 
@@ -17,7 +18,7 @@ import Section from "../../components/Section.astro";
 import {
   formatCollectionName,
   generateCollectionPaths,
-  fetchCollectionItems, // Import fetchCollectionItems
+  fetchCollectionItems,
 } from "../../utils/collections.js";
 
 const { collection } = Astro.params;
@@ -28,22 +29,23 @@ export async function getStaticPaths() {
 }
 ---
 <CollectionLayout title={`Our ${formatCollectionName(collection)}`} description={`Explore our ${formatCollectionName(collection)} and discover what we offer.`}>
+  
   <Section className="collection-header">
-    <h1>{`Our ${formatCollectionName(collection)}`}</h1>
-    <p>{`Explore our ${formatCollectionName(collection)} and discover what we offer.`}</p>
+    <ContentTemplate 
+      collection={collection} 
+      viewAllHref={`/${collection}`} 
+      viewAllText={`View All ${formatCollectionName(collection)}s`}
+    >
+      <ItemsTemplate
+        collection={collection}
+        ItemComponent={CollectionCard}
+        query={fetchCollectionItems}
+        columns={3}
+        gap="1.5rem"
+      />
+    </ContentTemplate>
   </Section>
-
-  <Section className="collections-list-section">
-    <ItemsTemplate
-      collection={collection}
-      ItemComponent={CollectionCard}
-      query={fetchCollectionItems} // Pass the fetchCollectionItems function
-      columns={3} // Adjust as needed
-      gap="1.5rem"
-      viewAllHref={`/${collection}`}
-      viewAllText={`View All ${formatCollectionName(collection)}s`} // Optional: Customize button text
-    />
-  </Section>
+  
 </CollectionLayout>
 
 <style>

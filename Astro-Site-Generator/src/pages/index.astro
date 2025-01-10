@@ -1,14 +1,17 @@
 ---
-// Import components
+// layout import
 import Layout from '../layouts/Layout.astro';
+
+// component imports
 import Button from '../components/Button.astro';
 import Image from '../components/Image.astro';
 import Section from '../components/Section.astro';
-import ItemsTemplate from '../components/ItemsTemplate.astro'; // New import
+import ContentTemplate from '../components/ContentTemplate.astro';
+import ItemsTemplate from '../components/ItemsTemplate.astro';
 import CollectionCard from '../components/CollectionsCard.astro';
-import ServiceCard from '../components/ServiceCard.astro'; // Re-import if needed
+import ServiceCard from '../components/ServiceCard.astro';
 
-// Import query functions
+// utility imports
 import { fetchFeaturedItems } from '../utils/collections.js';
 ---
 <Layout title="Home Page" description="Welcome to our Astro-powered website.">
@@ -22,30 +25,38 @@ import { fetchFeaturedItems } from '../utils/collections.js';
   
   <!-- Featured Services Section -->
   <Section>
-    <h2>Featured Services</h2>
-    <ItemsTemplate
-      collection="services"
-      ItemComponent={ServiceCard}
-      query={fetchFeaturedItems} // Pass the fetchFeaturedItems function
-      columns={3} // Adjust as needed
-      gap="1rem"
-      viewAllHref="/services"
+    <ContentTemplate 
+      collection="services" 
+      viewAllHref="/services" 
       viewAllText="View All Services"
-    />
+    >
+      <h2>Featured Services</h2>
+      <ItemsTemplate
+        collection="services"
+        ItemComponent={ServiceCard}
+        query={fetchFeaturedItems}
+        columns={3}
+        gap="1rem"
+      />
+    </ContentTemplate>
   </Section>
   
   <!-- Featured Projects Section -->
   <Section>
-    <h2>Featured Projects</h2>
-    <ItemsTemplate
-      collection="projects"
-      ItemComponent={CollectionCard}
-      query={fetchFeaturedItems} // Assuming you have featured projects as well
-      columns={3} // Adjust as needed
-      gap="1.5rem"
-      viewAllHref="/projects"
+    <ContentTemplate 
+      collection="projects" 
+      viewAllHref="/projects" 
       viewAllText="View All Projects"
-    />
+    >
+      <h2>Featured Projects</h2>
+      <ItemsTemplate
+        collection="projects"
+        ItemComponent={CollectionCard}
+        query={fetchFeaturedItems}
+        columns={3}
+        gap="1.5rem"
+      />
+    </ContentTemplate>
   </Section>
   
   <!-- Highlight Section -->

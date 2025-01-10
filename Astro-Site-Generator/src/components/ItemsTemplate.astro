@@ -11,19 +11,14 @@
  * - columns: Number of items per row on large screens (default: 3).
  * - gap: Gap between items (default: '1.5rem').
  * - className: Additional class names for the container (optional).
- * - viewAllHref: (Optional) URL for the "View All" button.
- * - viewAllText: (Optional) Text for the "View All" button.
  */
-
  const {
   collection,
   ItemComponent,
-  query, // New prop: Function to fetch items
+  query, // Function to fetch items
   columns = 3,
   gap = '1.5rem',
   className = '',
-  viewAllHref = null,
-  viewAllText = 'View All',
 } = Astro.props;
 
 // Validate that `query` is a function
@@ -44,12 +39,6 @@ const hasItems = Array.isArray(items) && items.length > 0;
         <ItemComponent key={item.slug} {...item} collection={collection} />
       ))}
     </div>
-    
-    {viewAllHref && (
-      <div class="view-all-container">
-        <a href={viewAllHref} class="primary-button">{viewAllText}</a>
-      </div>
-    )}
   </div>
 ) : (
   <p class="no-items">No items available.</p>
@@ -77,26 +66,6 @@ const hasItems = Array.isArray(items) && items.length > 0;
     .items-list {
       grid-template-columns: 1fr;
     }
-  }
-
-  .view-all-container {
-    text-align: center;
-    margin-top: 1.5rem;
-  }
-
-  .primary-button {
-    padding: 0.5rem 1rem;
-    background-color: #007acc;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-    font-weight: bold;
-    display: inline-block;
-  }
-
-  .primary-button:hover {
-    background-color: #005fa3;
   }
 
   .no-items {

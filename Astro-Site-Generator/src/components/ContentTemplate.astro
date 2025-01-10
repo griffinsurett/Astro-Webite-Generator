@@ -1,0 +1,83 @@
+---
+/**
+ * ContentTemplate.astro
+ *
+ * A reusable component to display collection-specific content along with nested components.
+ *
+ * Props:
+ * - collection: The name of the collection to fetch metadata from.
+ * - children: The nested components to render within the content template.
+ * - viewAllHref: (Optional) URL for the "View All" button.
+ * - viewAllText: (Optional) Text for the "View All" button.
+ */
+
+ import { getCollectionPageData } from '../utils/collections.js';
+import Button from './Button.astro'; // Import the Button component
+
+const { collection, children, viewAllHref = null, viewAllText = 'View All' } = Astro.props;
+
+// Validate that `collection` prop is provided
+if (!collection || typeof collection !== 'string') {
+  throw new Error(`The "collection" prop must be a non-empty string.`);
+}
+
+let pageData;
+
+try {
+  // Fetch collection metadata
+  pageData = await getCollectionPageData(collection);
+} catch (error) {
+  console.error(error.message);
+  // Redirect to 404 if collection not found
+  Astro.redirect('/404');
+}
+
+// Destructure necessary data
+const { pageTitle, pageDescription } = pageData;
+---
+<div class="content-template">
+  <!-- Collection Header -->
+  <header class="collection-header">
+    <h1>{pageTitle}</h1>
+    <p>{pageDescription}</p>
+  </header>
+
+  <!-- Nested Components (e.g., ItemsTemplate) -->
+  <div class="nested-content">
+    <slot />
+  </div>
+
+  <!-- "View All" Button -->
+  {viewAllHref && (
+    <div class="view-all-container">
+      <Button text={viewAllText} href={viewAllHref} className="primary-button" />
+    </div>
+  )}
+</div>
+
+<style>
+  .content-template {
+    width: 100%;
+  }
+
+  .collection-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .collection-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  .collection-header p {
+    font-size: 1.2rem;
+    color: #666;
+  }
+
+  .view-all-container {
+    text-align: center;
+    margin-top: 2rem;
+  }
+</style>
