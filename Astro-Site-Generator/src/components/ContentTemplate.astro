@@ -36,7 +36,7 @@ const { pageTitle, pageDescription } = pageData;
 
 // Dynamically generate `viewAllHref` and `viewAllText` if not provided
 const finalViewAllHref = viewAllHref || `/${collection}`;
-const finalViewAllText = viewAllText || `View All ${formatCollectionName(collection)}s`;
+const finalViewAllText = viewAllText || `View All ${formatCollectionName(collection)}`;
 
 // Get the current URL path
 const currentPath = Astro.url.pathname;
