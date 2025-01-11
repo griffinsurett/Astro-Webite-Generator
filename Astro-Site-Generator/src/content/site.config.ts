@@ -1,5 +1,5 @@
 // src/content/site.config.ts
-import { z } from 'zod';
+import { z } from 'astro:content';
 
 // Define the schema for site settings using Zod
 const siteConfigSchema = z.object({
