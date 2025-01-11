@@ -1,35 +1,35 @@
 ---
-import { executeQuery } from "../utils/queries/executeQuery.js";
-
 /**
  * ItemsTemplate.astro
  *
+ * A reusable component to display a list of items within a section based on a collection.
+ *
  * Props:
- * - collection: The name of the collection (optional but can be helpful if you still want it).
+ * - collection: The name of the collection to fetch items from.
  * - ItemComponent: The Astro component used to render each item.
- * - queryName: The name of the query we want to run (string).
+ * - query: A function that takes `collection` as an argument and returns an array of items.
  * - columns: Number of items per row on large screens (default: 3).
  * - gap: Gap between items (default: '1.5rem').
  * - className: Additional class names for the container (optional).
  */
-
-const {
+ const {
   collection,
   ItemComponent,
-  queryName,                // Pass this instead of a function
+  query, // Function to fetch items
   columns = 3,
   gap = '1.5rem',
   className = '',
 } = Astro.props;
 
-if (!queryName || typeof queryName !== 'string') {
-  throw new Error(`The "queryName" prop must be a non-empty string.`);
+// Validate that `query` is a function
+if (typeof query !== 'function') {
+  throw new Error(`The "query" prop must be a function.`);
 }
 
-// 1) Use executeQuery to get items from your QUERIES
-const items = await executeQuery(queryName);
+// Fetch items using the provided query function
+const items = await query(collection);
 
-// 2) Determine if there are items to display
+// Determine if there are items to display
 const hasItems = Array.isArray(items) && items.length > 0;
 ---
 {hasItems ? (
@@ -55,11 +55,13 @@ const hasItems = Array.isArray(items) && items.length > 0;
     gap: ${gap};
   }
 
+  /* Responsive Adjustments */
   @media (max-width: 1024px) {
     .items-list {
       grid-template-columns: repeat(2, 1fr);
     }
   }
+
   @media (max-width: 600px) {
     .items-list {
       grid-template-columns: 1fr;

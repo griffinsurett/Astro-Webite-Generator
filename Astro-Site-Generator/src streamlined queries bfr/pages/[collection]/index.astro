@@ -28,21 +28,22 @@ export async function getStaticPaths() {
   return await generateCollectionPaths();
 }
 ---
-<CollectionLayout
-  title={`Our ${formatCollectionName(collection)}`}
-  description={`Explore our ${formatCollectionName(collection)} and discover what we offer.`}
->
+<CollectionLayout title={`Our ${formatCollectionName(collection)}`} description={`Explore our ${formatCollectionName(collection)} and discover what we offer.`}>
+  
   <Section className="collection-header">
-    <ContentTemplate collection={collection}>
+    <ContentTemplate 
+      collection={collection} 
+    >
       <ItemsTemplate
         collection={collection}
         ItemComponent={CollectionCard}
-        queryName={`AllItems${formatCollectionName(collection)}`} 
+        query={fetchCollectionItems}
         columns={3}
         gap="1.5rem"
       />
     </ContentTemplate>
   </Section>
+  
 </CollectionLayout>
 
 <style>
