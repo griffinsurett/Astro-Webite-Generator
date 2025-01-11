@@ -2,61 +2,36 @@
 import { collections } from "../../content/config.ts";
 import { getAvailableCollections } from "./collectionHelpers.js";
 
-/**
- * Generates static paths for all collections that have hasPage set to true.
- * @returns {Array<Object>} - An array of path objects.
- */
+/** Generate static paths for collections that have hasPage: true. */
 export async function generateCollectionPaths() {
-  const availableCollections = getAvailableCollections();
   const paths = [];
-
-  availableCollections.forEach((col) => {
-    const collection = collections[col];
-    if (collection.metadata.hasPage) {
-      paths.push({ params: { collection: col } });
+  for (const colName of getAvailableCollections()) {
+    if (collections[colName].metadata.hasPage) {
+      paths.push({ params: { collection: colName } });
     }
-  });
-
+  }
   return paths;
 }
 
-/**
- * Generates static paths for all items in all collections, respecting hasPage and itemsHasPage.
- * @returns {Array<Object>} - An array of path objects.
- */
+/** Generate static paths for all items in all collections, respecting itemsHasPage & item.hasPage. */
 export async function generateItemPaths() {
   const paths = [];
-
-  for (const [collectionName, collection] of Object.entries(collections)) {
-    const { itemsHasPage } = collection.metadata;
-
-    collection.data.forEach((item) => {
-      // If item.hasPage is explicitly set, honor that; otherwise use itemsHasPage
-      const itemHasPage = item.hasPage !== undefined ? item.hasPage : null;
-
-      if (itemsHasPage) {
+  for (const [colName, collObj] of Object.entries(collections)) {
+    if (!collObj.data) continue;
+    for (const item of collObj.data) {
+      const itemHasPage = item.hasPage ?? null;
+      if (collObj.metadata.itemsHasPage) {
         // Collection allows item pages by default
         if (itemHasPage !== false) {
-          paths.push({
-            params: {
-              collection: collectionName,
-              slug: item.slug,
-            },
-          });
+          paths.push({ params: { collection: colName, slug: item.slug } });
         }
       } else {
         // Collection does NOT allow item pages by default
         if (itemHasPage === true) {
-          paths.push({
-            params: {
-              collection: collectionName,
-              slug: item.slug,
-            },
-          });
+          paths.push({ params: { collection: colName, slug: item.slug } });
         }
       }
-    });
+    }
   }
-
   return paths;
 }

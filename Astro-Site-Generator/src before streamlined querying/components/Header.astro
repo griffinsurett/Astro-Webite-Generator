@@ -1,6 +1,8 @@
 ---
 import { executeQuery } from "../utils/queries/executeQuery.js";
-const HeaderMenuQuery = await executeQuery("NavMenu");
+
+// Execute the "NavMenu" query to get menu items
+const navMenuItems = executeQuery("NavMenu");
 
 // You may still accept props like siteTitle, logo if desired:
 const { siteTitle, logo } = Astro.props;
@@ -12,7 +14,7 @@ const { siteTitle, logo } = Astro.props;
       <img src={logo} alt="Site Logo" width="115" height="48" />
     </a>
     <ul class="nav-links">
-      {HeaderMenuQuery.map((item) => (
+      {navMenuItems.map((item) => (
         <li>
           <a href={item.href}>{item.label}</a>
         </li>

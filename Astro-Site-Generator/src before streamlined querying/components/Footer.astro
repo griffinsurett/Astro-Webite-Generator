@@ -1,6 +1,8 @@
 ---
 import { executeQuery } from "../utils/queries/executeQuery.js";
-const FooterMenuQuery = await executeQuery("FooterMenu");
+
+// Retrieve "FooterMenu" items
+const footerMenuItems = executeQuery("FooterMenu");
 
 // Keep the rest of your props as needed (e.g., footer text)
 const { text } = Astro.props;
@@ -8,7 +10,7 @@ const { text } = Astro.props;
 <footer>
   <p>{text}</p>
   <ul class="footer-links">
-    {FooterMenuQuery.map((item) => (
+    {footerMenuItems.map((item) => (
       <li>
         <a href={item.href}>{item.label}</a>
       </li>
