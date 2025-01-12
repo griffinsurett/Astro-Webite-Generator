@@ -8,16 +8,17 @@ import {
 
 import { collections } from "../../content/config.ts"; // so we can read all data
 
-// NEW: import the helpers from relationalHelpers.js
 import {
   getDirectAndReverseRefs,
   extractReferencesToOtherCollections,
   hasAnyReferenceIntersection,
+  findMultiHopReferences,
+  findSameCollectionReferences,
 } from "./relationalHelpers.js";
 
 export function generateCollectionQueries() {
   const queries = [];
-  const collectionNames = getAvailableCollections(); // e.g., ["services", "projects", ...]
+  const collectionNames = getAvailableCollections(); // e.g., ["services", "projects", "testimonials", etc.]
 
   for (const colName of collectionNames) {
     const formattedColName = formatCollectionName(colName);
@@ -51,7 +52,7 @@ export function generateCollectionQueries() {
     // 3) Related<CollectionName>
     queries.push({
       name: `Related${formattedColName}`,
-      description: `Items from "${colName}" that reference or are referenced by the current item (plus same-collection shared references).`,
+      description: `Items from "${colName}" that reference or are referenced by the current item (multi-hop + same-collection).`,
       async getItems({ slug, currentCollection }) {
         if (!slug || !currentCollection) return [];
 
@@ -61,44 +62,24 @@ export function generateCollectionQueries() {
         const currentItem = currentColObj.data.find((i) => i.slug === slug);
         if (!currentItem) return [];
 
-        // B) If colName !== currentCollection (i.e. we want RelatedServices from a Project page),
-        //    then do the standard "direct + reverse" references.
+        // B) If colName != currentCollection, gather direct/reverse + multi-hop
         if (colName !== currentCollection) {
-          const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, colName);
-          const combined = [...directRefs, ...reverseRefs];
-          const unique = Array.from(new Set(combined));
+          const multiHopItems = findMultiHopReferences(
+            currentItem,
+            currentCollection,
+            colName
+          );
+          // De-duplicate
+          const unique = Array.from(new Set(multiHopItems));
           return unique.map((item) => ({
             ...item,
             href: `/${colName}/${item.slug}`,
           }));
         }
 
-        // C) If colName === currentCollection (i.e. a Project page wanting RelatedProjects),
-        //    we gather:
-        //    1) "shared references" with other items in the same collection
-        //    2) "direct + reverse" references if self-referencing is possible
-
-        const sameCollection = collections[colName].data;
-        const sameColResults = [];
-
-        // Gather all references of the current item that point to *other* collections
-        const referencesByCollection = extractReferencesToOtherCollections(currentItem);
-
-        for (const otherItem of sameCollection) {
-          if (otherItem.slug === slug) continue;
-          const otherRefs = extractReferencesToOtherCollections(otherItem);
-
-          if (hasAnyReferenceIntersection(referencesByCollection, otherRefs)) {
-            sameColResults.push(otherItem);
-          }
-        }
-
-        // Also handle "direct + reverse" references within the same collection
-        const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, colName);
-        const combined = [...sameColResults, ...directRefs, ...reverseRefs];
-        const unique = Array.from(new Set(combined));
-
-        return unique.map((item) => ({
+        // C) If colName == currentCollection, gather same-collection references
+        const sameColItems = findSameCollectionReferences(currentItem, colName);
+        return sameColItems.map((item) => ({
           ...item,
           href: `/${colName}/${item.slug}`,
         }));

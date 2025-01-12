@@ -4,25 +4,33 @@ import { collections } from "../../content/config.ts";
 /**
  * getDirectAndReverseRefs(item, colName):
  * - item: the current item object
- * - colName: "services" or "projects" or etc.
+ * - colName: e.g. "services", "projects", "testimonials", etc.
+ * 
  * Returns: { directRefs: [...], reverseRefs: [...] }
  * 
- * This is the same logic you had before for "direct references" and "reverse references."
+ * - directRefs = items in colName that the current item references
+ * - reverseRefs = items in colName that reference the current item
  */
 export function getDirectAndReverseRefs(item, colName) {
+  // If colName is null, we'll gather direct references from *all* keys, but that’s an edge usage
+  // For the typical usage, colName is a valid string (like "testimonials").
+  if (!colName) {
+    return { directRefs: [], reverseRefs: [] };
+  }
+
   let directRefs = [];
   const allTargetItems = collections[colName].data;
 
-  // directRefs: if item[colName] is an array of slugs referencing that collection
+  // 1) Direct: item[colName] is an array of slugs referencing that collection
   if (Array.isArray(item[colName])) {
     directRefs = item[colName]
       .map((refSlug) => allTargetItems.find((t) => t.slug === refSlug))
       .filter(Boolean);
   }
 
-  // reverseRefs: any item in colName referencing this `item.slug`
+  // 2) Reverse: any item in colName referencing this `item.slug`
   const reverseRefs = allTargetItems.filter((targetItem) => {
-    // Check each property. If it's an array and includes the current slug, it's referencing us
+    // Check each property. If it's an array and includes the current slug, it references us
     return Object.entries(targetItem).some(([key, val]) => {
       return Array.isArray(val) && val.includes(item.slug);
     });
@@ -33,15 +41,14 @@ export function getDirectAndReverseRefs(item, colName) {
 
 /**
  * extractReferencesToOtherCollections(item):
- * Returns an object where each key is a different collection name,
- * and the value is a Set of slugs from that collection that this item references.
- * 
- * Example: if item.services = ["web-development"], and item.team = ["bob", "alice"],
- * and "services" + "team" are valid collections, we'd return:
+ * Returns an object like:
  * {
- *   services: Set(["web-development"]),
- *   team: Set(["bob","alice"])
+ *   services: Set([...]),
+ *   projects: Set([...]),
+ *   testimonials: Set([...]),
+ *   ...
  * }
+ * Each key is another collection that this item references, and the value is a Set of slugs.
  */
 export function extractReferencesToOtherCollections(item) {
   const result = {};
@@ -57,15 +64,13 @@ export function extractReferencesToOtherCollections(item) {
 
 /**
  * hasAnyReferenceIntersection(refMapA, refMapB):
- * - refMapA, refMapB are objects like { services: Set(...), team: Set(...) }
- * We return true if there's any *same collection key* with a shared slug in that set.
+ * - refMapA, refMapB are objects like { services: Set(...), projects: Set(...), ... }
+ * - Returns `true` if they share at least one slug in the same collection key.
  */
 export function hasAnyReferenceIntersection(refMapA, refMapB) {
-  // For each collection in refMapA, see if refMapB has the same collection
-  // and if there's any intersection in those sets
   for (const colKey of Object.keys(refMapA)) {
     if (!refMapB[colKey]) continue;
-    // If the two sets share at least one value, we consider it an intersection
+    // Check if the two sets share any slug
     for (const slugA of refMapA[colKey]) {
       if (refMapB[colKey].has(slugA)) {
         return true;
@@ -73,4 +78,83 @@ export function hasAnyReferenceIntersection(refMapA, refMapB) {
     }
   }
   return false;
+}
+
+/**
+ * findMultiHopReferences(currentItem, currentCollection, targetCollection):
+ * 
+ * - currentItem: The item we are on (e.g., a "service" or "project")
+ * - currentCollection: The collection that currentItem belongs to
+ * - targetCollection: The collection we want to find items in
+ * 
+ * Steps:
+ *   1) Gather direct+reverse references to targetCollection
+ *   2) Attempt multi-hop bridging: from currentItem => "any other collection" => targetCollection
+ *   3) Return a combined, deduplicated array of items in the targetCollection.
+ */
+export function findMultiHopReferences(currentItem, currentCollection, targetCollection) {
+  // 1) Direct + reverse references
+  const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, targetCollection);
+  let combined = [...directRefs, ...reverseRefs];
+
+  // 2) Multi-hop references
+  // For each other collection, gather bridging items. Then from those bridging items,
+  // gather references to targetCollection.
+  const multiHopResults = [];
+  const allCollectionNames = Object.keys(collections);
+
+  for (const possibleCol of allCollectionNames) {
+    // Skip if it’s the current collection or the target
+    if (possibleCol === currentCollection || possibleCol === targetCollection) {
+      continue;
+    }
+
+    // For each bridging item in "possibleCol" that references (or is referenced by) currentItem:
+    const { directRefs: directBridge, reverseRefs: reverseBridge } =
+      getDirectAndReverseRefs(currentItem, possibleCol);
+
+    const bridgingItems = [...directBridge, ...reverseBridge];
+    for (const bItem of bridgingItems) {
+      const { directRefs: dr2, reverseRefs: rr2 } = getDirectAndReverseRefs(bItem, targetCollection);
+      multiHopResults.push(...dr2, ...rr2);
+    }
+  }
+
+  combined = [...combined, ...multiHopResults];
+
+  // Remove duplicates
+  const unique = Array.from(new Set(combined));
+  return unique;
+}
+
+/**
+ * findSameCollectionReferences(currentItem, collectionName):
+ * 
+ * - For items in the *same* collection, we gather:
+ *    1) Items that share references to other collections (shared references).
+ *    2) Direct + reverse references if the item references itself in some unusual scenario.
+ */
+export function findSameCollectionReferences(currentItem, collectionName) {
+  const sameCollection = collections[collectionName].data;
+  const sameColResults = [];
+
+  // Gather all references of the current item that point to *other* collections
+  const referencesByCollection = extractReferencesToOtherCollections(currentItem);
+
+  for (const otherItem of sameCollection) {
+    if (otherItem.slug === currentItem.slug) continue;
+    const otherRefs = extractReferencesToOtherCollections(otherItem);
+
+    if (hasAnyReferenceIntersection(referencesByCollection, otherRefs)) {
+      sameColResults.push(otherItem);
+    }
+  }
+
+  // Also handle direct + reverse references in the same collection
+  const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, collectionName);
+  const combined = [...sameColResults, ...directRefs, ...reverseRefs];
+
+  // De-duplicate
+  const unique = Array.from(new Set(combined));
+  return unique;
 }

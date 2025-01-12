@@ -1,0 +1,12 @@
+---
+const { src, alt = "Image", className = "" } = Astro.props;
+---
+<img src={src} alt={alt} class={className} />
+
+<style>
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+  }
+</style>
