@@ -12,9 +12,8 @@ import { collections } from "../../content/config.ts";
  * - reverseRefs = items in colName that reference the current item
  */
 export function getDirectAndReverseRefs(item, colName) {
-  // If colName is null, we'll gather direct references from *all* keys, but that’s an edge usage
-  // For the typical usage, colName is a valid string (like "testimonials").
-  if (!colName) {
+  // If colName is null, we skip. Typically, colName is always a string in your queries.
+  if (!colName || !collections[colName]) {
     return { directRefs: [], reverseRefs: [] };
   }
 
@@ -30,8 +29,8 @@ export function getDirectAndReverseRefs(item, colName) {
 
   // 2) Reverse: any item in colName referencing this `item.slug`
   const reverseRefs = allTargetItems.filter((targetItem) => {
-    // Check each property. If it's an array and includes the current slug, it references us
-    return Object.entries(targetItem).some(([key, val]) => {
+    // For each property in that item, if it's an array and includes the current slug, it references us
+    return Object.values(targetItem).some((val) => {
       return Array.isArray(val) && val.includes(item.slug);
     });
   });
@@ -48,12 +47,14 @@ export function getDirectAndReverseRefs(item, colName) {
  *   testimonials: Set([...]),
  *   ...
  * }
- * Each key is another collection that this item references, and the value is a Set of slugs.
+ * Each key is a *valid* collection name that this item references, 
+ * and the value is a Set of slugs from that collection.
  */
 export function extractReferencesToOtherCollections(item) {
   const result = {};
   for (const [fieldKey, fieldVal] of Object.entries(item)) {
     if (Array.isArray(fieldVal) && fieldVal.length > 0) {
+      // Check if fieldKey is a valid collection
       if (collections[fieldKey]) {
         result[fieldKey] = new Set(fieldVal);
       }
@@ -104,12 +105,12 @@ export function findMultiHopReferences(currentItem, currentCollection, targetCol
   const allCollectionNames = Object.keys(collections);
 
   for (const possibleCol of allCollectionNames) {
-    // Skip if it’s the current collection or the target
+    // Skip if it’s the current or the target
     if (possibleCol === currentCollection || possibleCol === targetCollection) {
       continue;
     }
 
-    // For each bridging item in "possibleCol" that references (or is referenced by) currentItem:
+    // For each bridging item in "possibleCol" that references or is referenced by currentItem:
     const { directRefs: directBridge, reverseRefs: reverseBridge } =
       getDirectAndReverseRefs(currentItem, possibleCol);
 
@@ -157,4 +158,55 @@ export function findSameCollectionReferences(currentItem, collectionName) {
   // De-duplicate
   const unique = Array.from(new Set(combined));
   return unique;
+}
+
+/**
+ * fetchRelationalData(collectionName, slug):
+ * 
+ * - If you want a quick “direct + reverse references” for a single item
+ *   (similar to your old fetchRelationalData.js), you can call this function.
+ * - Returns an object with shape:
+ *      { direct: { services: [...], projects: [...] },
+ *        reverse: { services: [...], ... },
+ *        currentItem: { ...the item... } }
+ */
+export async function fetchRelationalData(collectionName, slug) {
+  const colObj = collections[collectionName];
+  if (!colObj) {
+    throw new Error(`No data found for collection "${collectionName}".`);
+  }
+
+  // current item
+  const currentItem = colObj.data.find((item) => item.slug === slug);
+  if (!currentItem) {
+    throw new Error(`Item with slug "${slug}" not found in "${collectionName}".`);
+  }
+
+  // Direct references by other collection names
+  const direct = {};
+  for (const [fieldKey, fieldVal] of Object.entries(currentItem)) {
+    if (Array.isArray(fieldVal) && fieldVal.length > 0 && collections[fieldKey]) {
+      direct[fieldKey] = fieldVal
+        .map((refSlug) => collections[fieldKey].data.find((i) => i.slug === refSlug))
+        .filter(Boolean);
+    }
+  }
+
+  // Reverse references: for each other collection, find items that reference us
+  const reverse = {};
+  for (const otherColName of Object.keys(collections)) {
+    const colData = collections[otherColName].data;
+    if (!colData) continue;
+
+    const referencing = colData.filter((itm) => {
+      // For each property in that item, if it's an array and includes `slug`, it references us
+      return Object.values(itm).some((val) => Array.isArray(val) && val.includes(slug));
+    });
+
+    if (referencing.length > 0) {
+      reverse[otherColName] = referencing;
+    }
+  }
+
+  return { direct, reverse, currentItem };
 }

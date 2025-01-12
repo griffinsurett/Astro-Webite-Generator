@@ -10,6 +10,7 @@ const STATIC_QUERIES = [
       { label: "Home", href: "/" },
       { label: "Services", href: "/services" },
       { label: "Projects", href: "/projects" },
+      { label: "Testimonials", href: "/testimonials" },
     ],
   },
   {

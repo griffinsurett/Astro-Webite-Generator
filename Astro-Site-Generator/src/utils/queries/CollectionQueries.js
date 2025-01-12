@@ -64,12 +64,7 @@ export function generateCollectionQueries() {
 
         // B) If colName != currentCollection, gather direct/reverse + multi-hop
         if (colName !== currentCollection) {
-          const multiHopItems = findMultiHopReferences(
-            currentItem,
-            currentCollection,
-            colName
-          );
-          // De-duplicate
+          const multiHopItems = findMultiHopReferences(currentItem, currentCollection, colName);
           const unique = Array.from(new Set(multiHopItems));
           return unique.map((item) => ({
             ...item,

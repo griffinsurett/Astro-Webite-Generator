@@ -18,6 +18,7 @@ export async function generateItemPaths() {
   const paths = [];
   for (const [colName, collObj] of Object.entries(collections)) {
     if (!collObj.data) continue;
+
     for (const item of collObj.data) {
       const itemHasPage = item.hasPage ?? null;
       if (collObj.metadata.itemsHasPage) {
