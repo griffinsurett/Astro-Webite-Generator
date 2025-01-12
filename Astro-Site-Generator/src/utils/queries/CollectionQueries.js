@@ -1,5 +1,4 @@
 // src/utils/queries/CollectionQueries.js
-
 import {
   getAvailableCollections,
   fetchCollectionItems,
@@ -9,12 +8,19 @@ import {
 
 import { collections } from "../../content/config.ts"; // so we can read all data
 
+// NEW: import the helpers from relationalHelpers.js
+import {
+  getDirectAndReverseRefs,
+  extractReferencesToOtherCollections,
+  hasAnyReferenceIntersection,
+} from "./relationalHelpers.js";
+
 export function generateCollectionQueries() {
   const queries = [];
   const collectionNames = getAvailableCollections(); // e.g., ["services", "projects", ...]
 
   for (const colName of collectionNames) {
-    const formattedColName = formatCollectionName(colName); // e.g. "Services", "Projects", etc.
+    const formattedColName = formatCollectionName(colName);
 
     // 1) AllItems<CollectionName>
     queries.push({
@@ -45,11 +51,7 @@ export function generateCollectionQueries() {
     // 3) Related<CollectionName>
     queries.push({
       name: `Related${formattedColName}`,
-      description: `Items from "${colName}" that reference or are referenced by the current item.`,
-      /**
-       * We accept params: { slug, currentCollection }
-       * to figure out direct & reverse references for colName.
-       */
+      description: `Items from "${colName}" that reference or are referenced by the current item (plus same-collection shared references).`,
       async getItems({ slug, currentCollection }) {
         if (!slug || !currentCollection) return [];
 
@@ -59,34 +61,43 @@ export function generateCollectionQueries() {
         const currentItem = currentColObj.data.find((i) => i.slug === slug);
         if (!currentItem) return [];
 
-        // B) DIRECT references: If the current item has an array named colName (e.g. "services" or "projects"),
-        //    gather those references from the target collection.
-        //    For example, if colName=="services" and currentItem.services=["web-dev"], gather those.
-        let directRefs = [];
-        if (Array.isArray(currentItem[colName])) {
-          const allTargetItems = collections[colName].data;
-          directRefs = currentItem[colName].map((refSlug) =>
-            allTargetItems.find((t) => t.slug === refSlug)
-          ).filter(Boolean);
+        // B) If colName !== currentCollection (i.e. we want RelatedServices from a Project page),
+        //    then do the standard "direct + reverse" references.
+        if (colName !== currentCollection) {
+          const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, colName);
+          const combined = [...directRefs, ...reverseRefs];
+          const unique = Array.from(new Set(combined));
+          return unique.map((item) => ({
+            ...item,
+            href: `/${colName}/${item.slug}`,
+          }));
         }
 
-        // C) REVERSE references: Find items in the target collection that reference our `slug`.
-        //    For instance, if we are generating "RelatedServices", we want to find all services
-        //    that have an array property referencing `slug`. 
-        //    Example: a service that has .projects=["project-alpha"] if the slug is "project-alpha".
-        const allTargetItems = collections[colName].data;
-        const reverseRefs = allTargetItems.filter((targetItem) => {
-          // Check each property of `targetItem` to see if it's an array and includes `slug`
-          return Object.entries(targetItem).some(([key, val]) => {
-            return Array.isArray(val) && val.includes(slug);
-          });
-        });
+        // C) If colName === currentCollection (i.e. a Project page wanting RelatedProjects),
+        //    we gather:
+        //    1) "shared references" with other items in the same collection
+        //    2) "direct + reverse" references if self-referencing is possible
 
-        // D) Merge & deduplicate
-        const combined = [...directRefs, ...reverseRefs];
+        const sameCollection = collections[colName].data;
+        const sameColResults = [];
+
+        // Gather all references of the current item that point to *other* collections
+        const referencesByCollection = extractReferencesToOtherCollections(currentItem);
+
+        for (const otherItem of sameCollection) {
+          if (otherItem.slug === slug) continue;
+          const otherRefs = extractReferencesToOtherCollections(otherItem);
+
+          if (hasAnyReferenceIntersection(referencesByCollection, otherRefs)) {
+            sameColResults.push(otherItem);
+          }
+        }
+
+        // Also handle "direct + reverse" references within the same collection
+        const { directRefs, reverseRefs } = getDirectAndReverseRefs(currentItem, colName);
+        const combined = [...sameColResults, ...directRefs, ...reverseRefs];
         const unique = Array.from(new Set(combined));
 
-        // E) Add an `href` property so these items can be linked to /<colName>/<slug>
         return unique.map((item) => ({
           ...item,
           href: `/${colName}/${item.slug}`,
