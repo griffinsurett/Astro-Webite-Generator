@@ -1,47 +1,35 @@
 ---
-/**
- * /[collection]/[slug].astro
- *
- * Renders individual collection items with structured sections and placeholders for related items.
- */
-
-// Layout imports
 import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
-
-// Component imports
-import Image from "../../components/Image.astro";
 import Section from "../../components/Section.astro";
+import Image from "../../components/Image.astro";
 import ContentTemplate from "../../components/ContentTemplate.astro";
-import ItemsTemplate from "../../components/ItemsTemplate.astro"; // Imported for future use
+import ItemsTemplate from "../../components/ItemsTemplate.astro";
 
-// Utils imports
 import {
   getCollectionItemPageData,
   generateItemPaths,
-  fetchFeaturedItems,
 } from "../../utils/collections/";
-import ServiceCard from "~/components/ServiceCard.astro";
 
+// Components for rendering references
+import ServiceCard from "../../components/ServiceCard.astro";
+import CollectionCard from "../../components/CollectionsCard.astro";
+
+// Grabs [collection]/[slug] from the URL
 const { collection, slug } = Astro.params;
 
 let pageData;
-
 try {
   pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
-  // Log the error for debugging purposes
   console.error(error.message);
-  // Redirect to 404 if not found
   Astro.redirect("/404");
 }
 
-// Destructure data for easier access
-const { title, description, icon, featuredImage, pageTitle } = pageData;
-
-// Export the getStaticPaths function
 export async function getStaticPaths() {
-  return await generateItemPaths();
+  return generateItemPaths();
 }
+
+const { title, description, icon, featuredImage, pageTitle } = pageData;
 ---
 
 <CollectionItemLayout
@@ -55,36 +43,61 @@ export async function getStaticPaths() {
       <header>
         <h1>{icon || "📄"} {title}</h1>
         <p>{description}</p>
-        {featuredImage && (
-          <Image
-            src={featuredImage}
-            alt={`${title} Featured Image`}
-            className="item-image"
-          />
-        )}
+        {
+          featuredImage && (
+            <Image
+              src={featuredImage}
+              alt={`${title} Featured Image`}
+              className="item-image"
+            />
+          )
+        }
       </header>
-      
-      <!-- Additional content can be added here -->
-      <p>
-     
-      </p>
+      <p>Additional item-specific content goes here...</p>
     </article>
   </Section>
+
+  <!-- Related Services -->
+  <Section className="related-services">
+    <ContentTemplate collection="services">
+      <ItemsTemplate
+        collection="services"
+        ItemComponent={ServiceCard}
+        queryName="RelatedServices"
+        slug={slug}
+        currentCollection={collection}
+        columns={3}
+      />
+    </ContentTemplate>
+  </Section>
+
+  <!-- Related Projects -->
+  <Section className="related-projects">
+    <ContentTemplate collection="projects">
+      <ItemsTemplate
+        collection="projects"
+        ItemComponent={CollectionCard}
+        queryName="RelatedProjects"
+        slug={slug}
+        currentCollection={collection}
+        columns={3}
+      />
+    </ContentTemplate>
+  </Section>
+</CollectionItemLayout>
 
 <style>
   .item-image {
     max-width: 100%;
     height: auto;
-    border-radius: 4px;
     margin-top: 1rem;
+    border-radius: 4px;
   }
-  
   .main-content {
-    /* Styles specific to the main content section */
+    /* custom styles */
   }
-  
-  .related-items-section {
-    /* Styles specific to the related items section */
+  .related-services,
+  .related-projects {
     margin-top: 3rem;
   }
 </style>

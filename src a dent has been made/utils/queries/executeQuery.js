@@ -6,23 +6,19 @@ function findQueryDefinition(name) {
   return QUERIES.find((q) => q.name === name) || null;
 }
 
-/**
- * executeQuery:
- * - queryName: The name of the query (string)
- * - params: Optional object to pass into `getItems()`
- */
-export async function executeQuery(queryName, params = {}) {
+/** executeQuery: returns items from named query (static or dynamic) */
+export async function executeQuery(queryName) {
   const queryDef = findQueryDefinition(queryName);
   if (!queryDef) {
     throw new Error(`Query "${queryName}" not found in queries.js`);
   }
 
-  // If dynamic query: call `getItems(params)`
+  // If dynamic: "getItems()"
   if (typeof queryDef.getItems === "function") {
-    return await queryDef.getItems(params);
+    return await queryDef.getItems();
   }
 
-  // If static query: return the items array
+  // If static: "items" array
   if (Array.isArray(queryDef.items)) {
     return queryDef.items;
   }

@@ -1,0 +1,111 @@
+---
+import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
+import Section from "../../components/Section.astro";
+import Image from "../../components/Image.astro";
+import ContentTemplate from "../../components/ContentTemplate.astro";
+import ItemsTemplate from "../../components/ItemsTemplate.astro";
+
+import {
+  getCollectionItemPageData,
+  generateItemPaths,
+} from "../../utils/collections/";
+
+// NEW import:
+import { fetchRelationalData } from "../../utils/collections/FetchRelationalData";
+
+// Components for rendering references
+import CollectionCard from "../../components/CollectionsCard.astro";
+import ServiceCard from "../../components/ServiceCard.astro";
+
+const { collection, slug } = Astro.params;
+
+let pageData, relational;
+
+try {
+  // 1) Standard item data
+  pageData = await getCollectionItemPageData(collection, slug);
+
+  // 2) Our new relational data (both direct & reverse references)
+  relational = await fetchRelationalData(collection, slug);
+} catch (error) {
+  console.error(error.message);
+  Astro.redirect("/404");
+}
+
+export async function getStaticPaths() {
+  return generateItemPaths();
+}
+
+const { title, description, icon, featuredImage, pageTitle } = pageData;
+const { direct, reverse } = relational || {};
+---
+
+<CollectionItemLayout
+  title={pageTitle}
+  description={description}
+  image={featuredImage}
+>
+  <!-- Main Content Section -->
+  <Section className="main-content">
+    <article>
+      <header>
+        <h1>{icon || "📄"} {title}</h1>
+        <p>{description}</p>
+        {featuredImage && (
+          <Image
+            src={featuredImage}
+            alt={`${title} Featured Image`}
+            className="item-image"
+          />
+        )}
+      </header>
+      
+      <!-- Additional item-specific content here -->
+      <p>Your item-specific details go here.</p>
+    </article>
+  </Section>
+
+  <!-- Example of "direct references" -->
+  <!-- If this item references a different collection (like a Project referencing Services) -->
+  {direct && Object.entries(direct).map(([refColName, refItems]) => (
+    <Section className="related-items-section">
+      <ContentTemplate collection={refColName}>
+        <ItemsTemplate
+          collection={refColName}
+          ItemComponent={refColName === "services" ? ServiceCard : CollectionCard} 
+          queryName=""  
+          items={refItems} 
+        />
+      </ContentTemplate>
+    </Section>
+  ))}
+
+  <!-- Example of "reverse references" -->
+  <!-- If some other collections reference this item -->
+  {reverse && Object.entries(reverse).map(([refColName, refItems]) => (
+    <Section className="related-items-section">
+      <ContentTemplate collection={refColName}>
+        <ItemsTemplate
+          collection={refColName}
+          ItemComponent={refColName === "services" ? ServiceCard : CollectionCard}
+          items={refItems}  
+        />
+      </ContentTemplate>
+    </Section>
+  ))}
+</CollectionItemLayout>
+
+<style>
+  .item-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+  .main-content {
+    /* Your styles */
+  }
+  .related-items-section {
+    margin-top: 3rem;
+  }
+</style>
