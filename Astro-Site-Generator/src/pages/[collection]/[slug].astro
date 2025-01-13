@@ -8,27 +8,79 @@ import ItemsTemplate from "../../components/ItemsTemplate.astro";
 import {
   getCollectionItemPageData,
   generateItemPaths,
+  getAvailableCollections,
+  fetchCollectionItems,
 } from "../../utils/collections/";
 
 // Components for rendering references
 import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 
-// Grabs [collection]/[slug] from the URL
+/**
+ * /[collection]/[slug].astro
+ *
+ * Handles two-segment routes like "/services/web-dev".
+ * - Redirects to "/services/web-development" if "web-dev" is in `redirectFrom`.
+ * - Displays the item page if the slug matches an actual item.
+ * - Redirects to 404 if neither condition is met.
+ */
+
+// 1) Generate all necessary static paths, including `redirectFrom` slugs
+export async function getStaticPaths() {
+  // Base paths: actual item slugs
+  const basePaths = await generateItemPaths();
+  // e.g., { collection: "services", slug: "seo-optimization" }
+
+  const extraPaths = [];
+
+  // Add `redirectFrom` slugs
+  for (const colName of getAvailableCollections()) {
+    const items = await fetchCollectionItems(colName);
+    for (const itm of items) {
+      if (itm.redirectFrom && itm.redirectFrom.length) {
+        for (const rSlug of itm.redirectFrom) {
+          extraPaths.push({ params: { collection: colName, slug: rSlug } });
+        }
+      }
+    }
+  }
+
+  // Combine and deduplicate paths
+  const allPaths = [...basePaths, ...extraPaths];
+  const uniquePaths = Array.from(
+    new Set(allPaths.map((p) => `${p.params.collection}/${p.params.slug}`))
+  ).map((path) => {
+    const [collection, slug] = path.split("/");
+    return { params: { collection, slug } };
+  });
+
+  return uniquePaths;
+}
+
+// 2) Handle the incoming request
 const { collection, slug } = Astro.params;
 
 let pageData;
 try {
+  // Attempt to fetch the actual item data
   pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
-  console.error(error.message);
-  Astro.redirect("/404");
+  // If not found, check if the slug is a `redirectFrom`
+  const items = await fetchCollectionItems(collection);
+  const redirectItem = items.find(
+    (item) => item.redirectFrom && item.redirectFrom.includes(slug)
+  );
+
+  if (redirectItem) {
+    // Redirect to the actual item's slug
+    return Astro.redirect(`/${collection}/${redirectItem.slug}`);
+  } else {
+    // Redirect to the 404 page
+    return Astro.redirect("/404");
+  }
 }
 
-export async function getStaticPaths() {
-  return generateItemPaths();
-}
-
+// 3) Render the item page if found
 const { title, description, icon, featuredImage, pageTitle } = pageData;
 ---
 
@@ -38,7 +90,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
   image={featuredImage}
 >
   <!-- Main Content Section -->
-  <Section className="main-content">
+  <Section class="main-content">
     <article>
       <header>
         <h1>{icon || "📄"} {title}</h1>
@@ -48,7 +100,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
             <Image
               src={featuredImage}
               alt={`${title} Featured Image`}
-              className="item-image"
+              class="item-image"
             />
           )
         }
@@ -58,7 +110,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
   </Section>
 
   <!-- Related Services -->
-  <Section className="related-services">
+  <Section class="related-services">
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
@@ -72,7 +124,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
   </Section>
 
   <!-- Related Projects -->
-  <Section className="related-projects">
+  <Section class="related-projects">
     <ContentTemplate collection="projects">
       <ItemsTemplate
         collection="projects"
@@ -85,19 +137,19 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     </ContentTemplate>
   </Section>
 
-    <!-- Related Testimonials -->
-    <Section className="related-testimonials">
-      <ContentTemplate collection="testimonials">
-        <ItemsTemplate
-          collection="testimonials"
-          ItemComponent={CollectionCard}
-          queryName="RelatedTestimonials"
-          slug={slug}
-          currentCollection={collection}
-          columns={3}
-        />
-      </ContentTemplate>
-    </Section>
+  <!-- Related Testimonials -->
+  <Section class="related-testimonials">
+    <ContentTemplate collection="testimonials">
+      <ItemsTemplate
+        collection="testimonials"
+        ItemComponent={CollectionCard}
+        queryName="RelatedTestimonials"
+        slug={slug}
+        currentCollection={collection}
+        columns={3}
+      />
+    </ContentTemplate>
+  </Section>
 </CollectionItemLayout>
 
 <style>
@@ -111,7 +163,8 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     /* custom styles */
   }
   .related-services,
-  .related-projects {
+  .related-projects,
+  .related-testimonials {
     margin-top: 3rem;
   }
 </style>

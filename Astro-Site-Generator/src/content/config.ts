@@ -1,4 +1,5 @@
 // src/content/config.ts
+
 import { defineCollection, z, reference } from 'astro:content';
 
 // Enhanced base schema for all items
@@ -13,6 +14,7 @@ const baseSchema = z.object({
   featuredImage: z.string().url().optional(),
   hasPage: z.boolean().optional(), // Per-item override for `hasPage`
   featured: z.boolean().optional(), // New field to mark as featured
+  redirectFrom: z.array(z.string()).optional(), // New field for item-level redirects
 });
 
 // Metadata schema for collections
@@ -24,6 +26,7 @@ const collectionMetadataSchema = z.object({
   featuredImage: z.string().optional(),
   hasPage: z.boolean(), // Default route behavior for the collection
   itemsHasPage: z.boolean(), // Default route behavior for items in the collection
+  redirectFrom: z.array(z.string()).optional(), // New field for collection-level redirects
 });
 
 // Define the 'services' collection
@@ -37,6 +40,7 @@ const services = defineCollection({
     featuredImage: "../assets/background.svg",
     hasPage: true, // Accessible at /services
     itemsHasPage: true, // Individual services accessible at /services/:slug by default
+    redirectFrom: ["service"], // Redirect /service to /services
   }),
   data: [
     {
@@ -47,6 +51,7 @@ const services = defineCollection({
       icon: "🔍",
       featuredImage: "../assets/background.svg",
       featured: true, // This service is featured
+      redirectFrom: ["seo"], // Redirect /seo to /services/seo-optimization
     },
     {
       title: "Web Development",
@@ -56,7 +61,7 @@ const services = defineCollection({
       icon: "🖥️",
       featuredImage: "../assets/background.svg",
       featured: true, // This service is featured
-      // featured is optional; defaults to false if not set
+      redirectFrom: ["web-dev", "development"], // Redirect /web-dev or /development to /services/web-development
     },
     // Add more services as needed
   ],
@@ -75,6 +80,7 @@ const projects = defineCollection({
     featuredImage: "../assets/background.svg",
     hasPage: true, // Accessible at /projects
     itemsHasPage: true, // Individual projects accessible at /projects/:slug by default
+    redirectFrom: ["project"], // Redirect /project to /projects
   }),
   data: [
     {
@@ -117,6 +123,7 @@ const testimonials = defineCollection({
     featuredImage: "../assets/background.svg",
     hasPage: true,        // <-- /testimonials route will be generated
     itemsHasPage: false,  // <-- individual items (/testimonials/[slug]) WILL NOT be generated
+    redirectFrom: ["testimonial"],
   }),
   data: [
     {
