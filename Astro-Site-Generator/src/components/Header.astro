@@ -1,57 +1,81 @@
 ---
-import { executeQuery } from "../utils/queries/";
-const HeaderMenuQuery = await executeQuery("NavMenu");
+import ItemsTemplate from "./ItemsTemplate.astro";
+import MenuItem from "./MenuItem.astro";
 
-// You may still accept props like siteTitle, logo if desired:
+// Optional: Define the ItemComponent as MenuItem
+const ItemComponent = MenuItem;
+
 const { siteTitle, logo } = Astro.props;
+
+// You can pass additional props if needed
 ---
 <header>
   <nav>
-    <a href="/">
-      <h1>{siteTitle}</h1>
-      <img src={logo} alt="Site Logo" width="115" height="48" />
-    </a>
-    <ul class="nav-links">
-      {HeaderMenuQuery.map((item) => (
-        <li>
-          <a href={item.href}>{item.label}</a>
-        </li>
-      ))}
-    </ul>
+    <div class="nav-left">
+      <a href="/">
+        <h1>{siteTitle}</h1>
+        <img src={logo} alt="Site Logo" width="115" height="48" />
+      </a>
+    </div>
+    <div class="nav-right">
+    <ItemsTemplate
+      collection="NavMenu"  
+      ItemComponent={ItemComponent}
+      queryName="NavMenu"
+      className="nav-links"
+      columns={null} 
+      gap="0"
+    />
+    </div>  
   </nav>
 </header>
 
 <style>
-  header {
+    header {
     background-color: #fff;
     padding: 1rem 2rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
   }
   nav {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
+
+  .nav-left {
+    width: 30%;
+  }
+
+  .nav-right {
+    width: 70%;
+  }
+
+  .items-list {
+    display: flex;
+    gap: 1rem;
+    justify-content: end;
+  }
+  
   .nav-links {
     list-style: none;
-    display: flex;
     gap: 1rem;
     margin: 0;
     padding: 0;
   }
-  .nav-links li a {
-    text-decoration: none;
+
+  .nav-links a.menu-item {
+    /* Additional styles if needed */
   }
-  .nav-links li a:hover {
-    text-decoration: underline;
-  }
-  img {
-    display: block;
-    margin-left: 0.5rem;
-  }
+
   h1 {
     margin: 0;
     font-size: 1.5rem;
     color: #333;
+  }
+
+  img {
+    display: block;
+    margin-left: 0.5rem;
   }
 </style>

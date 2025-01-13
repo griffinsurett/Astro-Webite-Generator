@@ -1,24 +1,35 @@
 ---
-// utils imports
-import { executeQuery } from "../utils/queries/";
+import ItemsTemplate from "./ItemsTemplate.astro";
+import MenuItem from "./MenuItem.astro";
 
-const FooterMenuQuery = await executeQuery("FooterMenu");
-
-// Keep the rest of your props as needed (e.g., footer text)
+// Fetch footer menu items
 const { text } = Astro.props;
+
+// Define the ItemComponent as MenuItem
+const ItemComponent = MenuItem;
+
+// Optional: Define additional props or classes
 ---
 <footer>
   <p>{text}</p>
-  <ul class="footer-links">
-    {FooterMenuQuery.map((item) => (
-      <li>
-        <a href={item.href}>{item.label}</a>
-      </li>
-    ))}
-  </ul>
+  <ItemsTemplate
+    collection="FooterMenu"  // Optional: Can be used if needed
+    ItemComponent={ItemComponent}
+    queryName="FooterMenu"
+    className="footer-links"
+    columns={null} // Not using grid for footer links
+    gap="0"
+  />
 </footer>
 
 <style>
+  footer {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
   .footer-links {
     list-style: none; 
     display: flex;
@@ -27,20 +38,14 @@ const { text } = Astro.props;
     margin: 0.5rem 0 0 0;
     padding: 0;
   }
-  .footer-links li {
+
+  .footer-links a.menu-item {
+    /* Additional styles if needed */
+  }
+
+  p {
     margin: 0;
-    padding: 0; 
-  }
-  footer {
-    background-color: #fff;
-    padding: 1rem 2rem;
-    text-align: center;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-  }
-  .footer-links li a {
-    text-decoration: none;
-  }
-  .footer-links li a:hover {
-    text-decoration: underline;
+    color: #666;
+    font-size: 0.9rem;
   }
 </style>

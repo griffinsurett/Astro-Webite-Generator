@@ -51,19 +51,8 @@ const hasItems = Array.isArray(items) && items.length > 0;
     width: 100%;
   }
   .items-list {
-    display: grid;
-    grid-template-columns: repeat(${columns}, 1fr);
-    gap: ${gap};
-  }
-  @media (max-width: 1024px) {
-    .items-list {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  @media (max-width: 600px) {
-    .items-list {
-      grid-template-columns: 1fr;
-    }
+    display: flex;
+    gap: ${gap}; 
   }
   .no-items {
     text-align: center;
