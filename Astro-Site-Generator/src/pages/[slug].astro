@@ -1,105 +1,25 @@
 ---
-import { collections } from "../content/config";
-import { 
-  getAvailableCollections, 
-  fetchCollectionItems, 
-  fetchCollectionItem 
-} from "../utils/collections";
+import {
+  generateSingleSegmentPaths,
+  handleSingleSegmentRedirect,
+} from "../utils/redirects/redirects";
 
-/**
- *  /[slug].astro
- *
- *  This route handles a single-segment URL like "/web-dev" or "/service".
- *  - If `slug` matches a collection's `redirectFrom`, redirect to "/collection".
- *  - If `slug` matches an item's actual slug, redirect to "/collection/item-slug".
- *  - If `slug` matches an item's `redirectFrom`, redirect to "/collection/item-slug".
- *  - Otherwise, 404.
- */
-
-// 1) getStaticPaths: generate every possible single-segment path
+// 1) Define getStaticPaths using the centralized path generator
 export async function getStaticPaths() {
-  const paths = [];
-
-  // For each collection:
-  for (const colName of getAvailableCollections()) {
-    const colObj = collections[colName];
-    const items = await fetchCollectionItems(colName);
-
-    // (A) Add the real item slugs
-    for (const item of items) {
-      paths.push({ params: { slug: item.slug } });
-      // (B) Add item redirectFrom slugs
-      if (item.redirectFrom) {
-        for (const rFrom of item.redirectFrom) {
-          paths.push({ params: { slug: rFrom } });
-        }
-      }
-    }
-
-    // (C) Add collection redirectFrom slugs
-    if (colObj.metadata.redirectFrom) {
-      for (const rFrom of colObj.metadata.redirectFrom) {
-        paths.push({ params: { slug: rFrom } });
-      }
-    }
-  }
-
-  // Deduplicate
-  const uniqueSlugs = [...new Set(paths.map((p) => p.params.slug))];
-  return uniqueSlugs.map((slug) => ({ params: { slug } }));
+  return await generateSingleSegmentPaths();
 }
 
-// 2) Route logic at runtime
+// 2) Handle redirects using the centralized redirect handler
 const { slug } = Astro.params;
-
-// Helper #1: Check if slug is in any collection’s redirectFrom
-function findCollectionRedirect(slug) {
-  for (const colName of getAvailableCollections()) {
-    const c = collections[colName];
-    if (c.metadata.redirectFrom && c.metadata.redirectFrom.includes(slug)) {
-      return colName; // Found a match
-    }
-  }
-  return null;
+const redirectTo = handleSingleSegmentRedirect(slug);
+if (redirectTo) {
+  return Astro.redirect(redirectTo);
 }
 
-// Helper #2: Check if slug is in any item’s redirectFrom
-function findItemRedirect(slug) {
-  for (const colName of getAvailableCollections()) {
-    const items = collections[colName].data;
-    for (const item of items) {
-      if (item.redirectFrom && item.redirectFrom.includes(slug)) {
-        return { collection: colName, itemSlug: item.slug };
-      }
-    }
-  }
-  return null;
-}
-
-/** 3) Check if the slug is a collection redirect */
-const collectionRedirect = findCollectionRedirect(slug);
-if (collectionRedirect) {
-  return Astro.redirect(`/${collectionRedirect}`);
-}
-
-/** 4) Check if the slug is an item-level redirectFrom */
-const itemRedirect = findItemRedirect(slug);
-if (itemRedirect) {
-  return Astro.redirect(`/${itemRedirect.collection}/${itemRedirect.itemSlug}`);
-}
-
-/** 5) Check if the slug is an actual item slug */
-for (const colName of getAvailableCollections()) {
-  const foundItem = await fetchCollectionItem(colName, slug);
-  if (foundItem) {
-    return Astro.redirect(`/${colName}/${slug}`);
-  }
-}
-
-/** 6) Otherwise, 404 */
+// 3) If no redirect is found, redirect to 404
 return Astro.redirect("/404");
 ---
 
 <!-- 
-  No HTML is rendered. We only intercept single-segment slugs and do a redirect or 404.
+  No HTML is rendered. Redirects are handled above.
 -->

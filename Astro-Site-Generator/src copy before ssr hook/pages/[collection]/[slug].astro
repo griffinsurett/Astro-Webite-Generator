@@ -5,37 +5,81 @@ import Image from "../../components/Image.astro";
 import ContentTemplate from "../../components/ContentTemplate.astro";
 import ItemsTemplate from "../../components/ItemsTemplate.astro";
 
+import {
+  getCollectionItemPageData,
+  generateItemPaths,
+  getAvailableCollections,
+  fetchCollectionItems,
+} from "../../utils/collections/";
+
+import {
+  findCollectionRedirectAlias,
+  generateRedirectItemPaths,
+} from "../../utils/redirects";
+
+// Components for rendering references
 import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 
-import { getCollectionItemPageData } from "../../utils/collections/";
+/**
+ * /[collection]/[slug].astro
+ *
+ * Handles two-segment routes like "/services/web-dev".
+ * - Redirects to "/services/web-development" if "web-dev" is in `redirectFrom`.
+ * - Detects if the collection segment is an alias (e.g., "service") and redirects to the actual collection (e.g., "services").
+ * - Displays the item page if the slug matches an actual item.
+ * - Redirects to 404 if neither condition is met.
+ */
 
-import {
-  generateTwoSegmentPaths,
-  handleTwoSegmentRedirect,
-} from "../../utils/redirects/redirects";
-
-// 1) Define getStaticPaths using the centralized path generator
+// 1) Generate all necessary static paths, including `redirectFrom` slugs
 export async function getStaticPaths() {
-  return await generateTwoSegmentPaths();
+  const basePaths = await generateItemPaths();
+  const redirectPaths = await generateRedirectItemPaths();
+  const allPaths = [...basePaths, ...redirectPaths];
+
+  // Deduplicate paths
+  const uniquePaths = Array.from(
+    new Set(allPaths.map((p) => `${p.params.collection}/${p.params.slug}`))
+  ).map((path) => {
+    const [collection, slug] = path.split("/");
+    return { params: { collection, slug } };
+  });
+
+  return uniquePaths;
 }
 
-// 2) Handle redirects using the centralized redirect handler
+// 2) Handle the incoming request
 const { collection, slug } = Astro.params;
-const redirectTo = handleTwoSegmentRedirect(collection, slug);
-if (redirectTo) {
-  return Astro.redirect(redirectTo);
+
+// Utilize the redirect utility functions
+const actualCollection = findCollectionRedirectAlias(collection);
+
+if (actualCollection) {
+  // If it's an alias, redirect to the actual collection with the same slug
+  return Astro.redirect(`/${actualCollection}/${slug}`);
 }
 
 let pageData;
 try {
-  // Fetch the page data using utility functions
+  // Attempt to fetch the actual item data
   pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
-  // Redirect to 404 if item not found
-  return Astro.redirect("/404");
+  // If not found, check if the slug is a `redirectFrom` within the current collection
+  const items = await fetchCollectionItems(collection);
+  const redirectItem = items.find(
+    (item) => item.redirectFrom && item.redirectFrom.includes(slug)
+  );
+
+  if (redirectItem) {
+    // Redirect to the actual item's slug
+    return Astro.redirect(`/${collection}/${redirectItem.slug}`);
+  } else {
+    // Redirect to the 404 page
+    return Astro.redirect("/404");
+  }
 }
 
+// 3) Render the item page if found
 const { title, description, icon, featuredImage, pageTitle } = pageData;
 ---
 
