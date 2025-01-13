@@ -15,12 +15,14 @@ import {
 // Components for rendering references
 import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
+import { collections } from "~/content/config";
 
 /**
  * /[collection]/[slug].astro
  *
  * Handles two-segment routes like "/services/web-dev".
  * - Redirects to "/services/web-development" if "web-dev" is in `redirectFrom`.
+ * - Detects if the collection segment is an alias (e.g., "service") and redirects to the actual collection (e.g., "services").
  * - Displays the item page if the slug matches an actual item.
  * - Redirects to 404 if neither condition is met.
  */
@@ -33,7 +35,7 @@ export async function getStaticPaths() {
 
   const extraPaths = [];
 
-  // Add `redirectFrom` slugs
+  // Add `redirectFrom` slugs for items
   for (const colName of getAvailableCollections()) {
     const items = await fetchCollectionItems(colName);
     for (const itm of items) {
@@ -43,13 +45,25 @@ export async function getStaticPaths() {
         }
       }
     }
+
+    // Add `redirectFrom` slugs for collections (e.g., "service" → "services")
+    if (collections[colName].metadata.redirectFrom) {
+      for (const rFrom of collections[colName].metadata.redirectFrom) {
+        // When the collection is an alias, we need to generate paths for all possible slugs under the actual collection
+        const actualCollection = colName;
+        const slugs = collections[actualCollection].data.map(item => item.slug);
+        for (const slug of slugs) {
+          extraPaths.push({ params: { collection: rFrom, slug } });
+        }
+      }
+    }
   }
 
   // Combine and deduplicate paths
   const allPaths = [...basePaths, ...extraPaths];
   const uniquePaths = Array.from(
-    new Set(allPaths.map((p) => `${p.params.collection}/${p.params.slug}`))
-  ).map((path) => {
+    new Set(allPaths.map(p => `${p.params.collection}/${p.params.slug}`))
+  ).map(path => {
     const [collection, slug] = path.split("/");
     return { params: { collection, slug } };
   });
@@ -60,16 +74,33 @@ export async function getStaticPaths() {
 // 2) Handle the incoming request
 const { collection, slug } = Astro.params;
 
+// Function to find if the collection segment is a redirect alias
+function findCollectionRedirectAlias(collectionSlug) {
+  for (const colName of getAvailableCollections()) {
+    const colObj = collections[colName];
+    if (colObj.metadata.redirectFrom && colObj.metadata.redirectFrom.includes(collectionSlug)) {
+      return colName; // Return the actual collection name
+    }
+  }
+  return null;
+}
+
+// Check if the collection segment is an alias
+const actualCollection = findCollectionRedirectAlias(collection);
+
+if (actualCollection) {
+  // If it's an alias, redirect to the actual collection with the same slug
+  return Astro.redirect(`/${actualCollection}/${slug}`);
+}
+
 let pageData;
 try {
   // Attempt to fetch the actual item data
   pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
-  // If not found, check if the slug is a `redirectFrom`
+  // If not found, check if the slug is a `redirectFrom` within the current collection
   const items = await fetchCollectionItems(collection);
-  const redirectItem = items.find(
-    (item) => item.redirectFrom && item.redirectFrom.includes(slug)
-  );
+  const redirectItem = items.find(item => item.redirectFrom && item.redirectFrom.includes(slug));
 
   if (redirectItem) {
     // Redirect to the actual item's slug
