@@ -1,0 +1,46 @@
+---
+// utils imports
+import { executeQuery } from "../utils/queries/";
+
+const FooterMenuQuery = await executeQuery("FooterMenu");
+
+// Keep the rest of your props as needed (e.g., footer text)
+const { text } = Astro.props;
+---
+<footer>
+  <p>{text}</p>
+  <ul class="footer-links">
+    {FooterMenuQuery.map((item) => (
+      <li>
+        <a href={item.href}>{item.label}</a>
+      </li>
+    ))}
+  </ul>
+</footer>
+
+<style>
+  .footer-links {
+    list-style: none; 
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+  }
+  .footer-links li {
+    margin: 0;
+    padding: 0; 
+  }
+  footer {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+  .footer-links li a {
+    text-decoration: none;
+  }
+  .footer-links li a:hover {
+    text-decoration: underline;
+  }
+</style>

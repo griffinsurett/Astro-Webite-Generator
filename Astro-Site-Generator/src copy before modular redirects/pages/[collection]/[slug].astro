@@ -10,10 +10,10 @@ import CollectionCard from "../../components/CollectionsCard.astro";
 
 import { getCollectionItemPageData } from "../../utils/collections/";
 
-import { 
-  generateTwoSegmentPaths, 
-  handleTwoSegmentRedirect 
-} from "../../utils/redirects";
+import {
+  generateTwoSegmentPaths,
+  handleTwoSegmentRedirect,
+} from "../../utils/redirects/redirects";
 
 // 1) Define getStaticPaths using the centralized path generator
 export async function getStaticPaths() {
