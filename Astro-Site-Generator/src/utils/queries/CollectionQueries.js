@@ -1,4 +1,5 @@
 // src/utils/queries/CollectionQueries.js
+
 import {
   getAvailableCollections,
   fetchCollectionItems,
@@ -8,6 +9,7 @@ import {
 
 import { collections } from "../../content/config.ts"; // so we can read all data
 
+// Existing relational helpers for multi-hop, etc.
 import {
   getDirectAndReverseRefs,
   extractReferencesToOtherCollections,
@@ -16,12 +18,21 @@ import {
   findSameCollectionReferences,
 } from "./relationalHelpers.js";
 
+// ✨ NEW IMPORT
+import {
+  findChildren,
+  findParents,
+  findSiblings,
+} from "../../utils/collections/HierarchicalUtils.js";
+
 export function generateCollectionQueries() {
   const queries = [];
   const collectionNames = getAvailableCollections(); // e.g., ["services", "projects", "testimonials", etc.]
 
   for (const colName of collectionNames) {
     const formattedColName = formatCollectionName(colName);
+    const colObj = collections[colName];
+    const isHierarchical = !!colObj.metadata.isHierarchical;
 
     // 1) AllItems<CollectionName>
     queries.push({
@@ -55,16 +66,20 @@ export function generateCollectionQueries() {
       description: `Items from "${colName}" that reference or are referenced by the current item (multi-hop + same-collection).`,
       async getItems({ slug, currentCollection }) {
         if (!slug || !currentCollection) return [];
-
-        // A) Find the current item in its own collection
         const currentColObj = collections[currentCollection];
         if (!currentColObj) return [];
+
+        // find the current item
         const currentItem = currentColObj.data.find((i) => i.slug === slug);
         if (!currentItem) return [];
 
-        // B) If colName != currentCollection, gather direct/reverse + multi-hop
+        // If target collection != current, gather direct/reverse + multi-hop
         if (colName !== currentCollection) {
-          const multiHopItems = findMultiHopReferences(currentItem, currentCollection, colName);
+          const multiHopItems = findMultiHopReferences(
+            currentItem,
+            currentCollection,
+            colName
+          );
           const unique = Array.from(new Set(multiHopItems));
           return unique.map((item) => ({
             ...item,
@@ -72,7 +87,7 @@ export function generateCollectionQueries() {
           }));
         }
 
-        // C) If colName == currentCollection, gather same-collection references
+        // Otherwise, gather same-collection references
         const sameColItems = findSameCollectionReferences(currentItem, colName);
         return sameColItems.map((item) => ({
           ...item,
@@ -80,6 +95,66 @@ export function generateCollectionQueries() {
         }));
       },
     });
+
+    /* -----------------------------------------------
+       NEW: Add hierarchy-specific queries if “isHierarchical” is true
+    ----------------------------------------------- */
+    if (isHierarchical) {
+      // Children<CollectionName>
+      queries.push({
+        name: `Children${formattedColName}`,
+        description: `All direct children of the current item in "${colName}".`,
+        async getItems({ slug }) {
+          if (!slug) return [];
+          const items = await fetchCollectionItems(colName);
+          const currentItem = items.find((i) => i.slug === slug);
+          if (!currentItem) return [];
+
+          const children = findChildren(currentItem, items);
+          return children.map((child) => ({
+            ...child,
+            href: `/${colName}/${child.slug}`,
+          }));
+        },
+      });
+
+      // Parent<CollectionName>
+      queries.push({
+        name: `Parent${formattedColName}`,
+        description: `All parent ancestors of the current item in "${colName}".`,
+        async getItems({ slug }) {
+          if (!slug) return [];
+          const items = await fetchCollectionItems(colName);
+          const currentItem = items.find((i) => i.slug === slug);
+          if (!currentItem) return [];
+
+          const parents = findParents(currentItem, items);
+          // Usually you'd want to reverse() here if you prefer top-down order
+          return parents.map((p) => ({
+            ...p,
+            href: `/${colName}/${p.slug}`,
+          }));
+        },
+      });
+
+      // Sibling<CollectionName>
+      queries.push({
+        name: `Sibling${formattedColName}`,
+        description: `All sibling items (same parent) in "${colName}".`,
+        async getItems({ slug }) {
+          if (!slug) return [];
+          const items = await fetchCollectionItems(colName);
+          const currentItem = items.find((i) => i.slug === slug);
+          if (!currentItem) return [];
+
+          const siblings = findSiblings(currentItem, items);
+          return siblings.map((s) => ({
+            ...s,
+            href: `/${colName}/${s.slug}`,
+          }));
+        },
+      });
+    }
   }
 
   return queries;

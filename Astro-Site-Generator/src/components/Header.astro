@@ -2,9 +2,6 @@
 import ItemsTemplate from "./ItemsTemplate.astro";
 import MenuItem from "./MenuItem.astro";
 
-// Optional: Define the ItemComponent as MenuItem
-const ItemComponent = MenuItem;
-
 const { siteTitle, logo } = Astro.props;
 
 // You can pass additional props if needed
@@ -20,7 +17,7 @@ const { siteTitle, logo } = Astro.props;
     <div class="nav-right">
     <ItemsTemplate
       collection="NavMenu"  
-      ItemComponent={ItemComponent}
+      ItemComponent={MenuItem}
       queryName="NavMenu"
       className="nav-links"
       columns={null} 

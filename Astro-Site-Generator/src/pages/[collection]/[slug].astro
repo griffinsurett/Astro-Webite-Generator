@@ -1,13 +1,16 @@
 ---
+// Layouts Imports
 import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
+
+// Components Imports
 import Section from "../../components/Section.astro";
 import Image from "../../components/Image.astro";
 import ContentTemplate from "../../components/ContentTemplate.astro";
 import ItemsTemplate from "../../components/ItemsTemplate.astro";
-
 import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 
+// Utils Imports
 import { getCollectionItemPageData } from "../../utils/collections/";
 
 import { 
@@ -15,13 +18,14 @@ import {
   handleTwoSegmentRedirect 
 } from "../../utils/redirects";
 
+const { collection, slug } = Astro.params;
+
 // 1) Define getStaticPaths using the centralized path generator
 export async function getStaticPaths() {
   return await generateTwoSegmentPaths();
 }
 
 // 2) Handle redirects using the centralized redirect handler
-const { collection, slug } = Astro.params;
 const redirectTo = handleTwoSegmentRedirect(collection, slug);
 if (redirectTo) {
   return Astro.redirect(redirectTo);
@@ -64,6 +68,48 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     </article>
   </Section>
 
+    <!-- Parent Services -->
+    <Section class="related-services">
+      <ContentTemplate collection="services">
+        <ItemsTemplate
+          collection="services"
+          ItemComponent={ServiceCard}
+          queryName="ParentServices"
+          slug={slug}
+          currentCollection={collection}
+          columns={2}
+        />
+      </ContentTemplate>
+    </Section>
+
+        <!-- Child Services -->
+        <Section class="related-services">
+          <ContentTemplate collection="services">
+            <ItemsTemplate
+              collection="services"
+              ItemComponent={ServiceCard}
+              queryName="ChildrenServices"
+              slug={slug}
+              currentCollection={collection}
+              columns={2}
+            />
+          </ContentTemplate>
+        </Section>
+
+          <!-- Related Services -->
+  <Section class="related-services">
+    <ContentTemplate collection="services">
+      <ItemsTemplate
+        collection="services"
+        ItemComponent={ServiceCard}
+        queryName="SiblingServices"
+        slug={slug}
+        currentCollection={collection}
+        columns={2}
+      />
+    </ContentTemplate>
+  </Section>
+  
   <!-- Related Services -->
   <Section class="related-services">
     <ContentTemplate collection="services">
@@ -73,7 +119,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
         queryName="RelatedServices"
         slug={slug}
         currentCollection={collection}
-        columns={3}
+        columns={2}
       />
     </ContentTemplate>
   </Section>
@@ -87,7 +133,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
         queryName="RelatedProjects"
         slug={slug}
         currentCollection={collection}
-        columns={3}
+        columns={2}
       />
     </ContentTemplate>
   </Section>
@@ -101,7 +147,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
         queryName="RelatedTestimonials"
         slug={slug}
         currentCollection={collection}
-        columns={3}
+        columns={2}
       />
     </ContentTemplate>
   </Section>
