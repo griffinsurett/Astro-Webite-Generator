@@ -1,0 +1,51 @@
+---
+import ItemsTemplate from "./ItemsTemplate.astro";
+import MenuItem from "./MenuItem.astro";
+
+// Fetch footer menu items
+const { text } = Astro.props;
+
+// Define the ItemComponent as MenuItem
+const ItemComponent = MenuItem;
+
+// Optional: Define additional props or classes
+---
+<footer>
+  <p>{text}</p>
+  <ItemsTemplate
+    collection="FooterMenu"  // Optional: Can be used if needed
+    ItemComponent={ItemComponent}
+    queryName="FooterMenu"
+    className="footer-links"
+    columns={null} // Not using grid for footer links
+    gap="0"
+  />
+</footer>
+
+<style>
+  footer {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    text-align: center;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .footer-links {
+    list-style: none; 
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin: 0.5rem 0 0 0;
+    padding: 0;
+  }
+
+  .footer-links a.menu-item {
+    /* Additional styles if needed */
+  }
+
+  p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+</style>

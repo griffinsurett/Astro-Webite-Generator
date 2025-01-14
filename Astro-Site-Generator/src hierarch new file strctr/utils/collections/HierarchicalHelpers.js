@@ -1,4 +1,4 @@
-// src/utils/collections/HierarchicalUtils.js
+// src/utils/collections/HierarchicalHelpers.js
 
 /**
  * findChildren: returns all direct children of `item` (based on `parent` field).

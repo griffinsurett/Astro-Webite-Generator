@@ -1,5 +1,5 @@
 // src/content/queries.js
-import { generateCollectionQueries } from "../utils/collections/";
+import { generateCollectionQueries } from "../utils/queries";
 
 /** 1) Your static queries */
 const STATIC_QUERIES = [
@@ -27,10 +27,6 @@ const STATIC_QUERIES = [
 const COLLECTION_QUERIES = generateCollectionQueries();
 
 /** 3) Combine both into a single export */
-export const QUERIES = [
-  ...STATIC_QUERIES,
-  ...COLLECTION_QUERIES,
-];
+export const QUERIES = [...STATIC_QUERIES, ...COLLECTION_QUERIES];
 
-console.log(QUERIES)
-
+console.log(QUERIES);

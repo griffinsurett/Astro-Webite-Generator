@@ -1,0 +1,78 @@
+---
+import ItemsTemplate from "./ItemsTemplate.astro";
+import MenuItem from "./MenuItem.astro";
+
+const { siteTitle, logo } = Astro.props;
+
+// You can pass additional props if needed
+---
+<header>
+  <nav>
+    <div class="nav-left">
+      <a href="/">
+        <h1>{siteTitle}</h1>
+        <img src={logo} alt="Site Logo" width="115" height="48" />
+      </a>
+    </div>
+    <div class="nav-right">
+    <ItemsTemplate
+      collection="NavMenu"  
+      ItemComponent={MenuItem}
+      queryName="NavMenu"
+      className="nav-links"
+      columns={null} 
+      gap="0"
+    />
+    </div>  
+  </nav>
+</header>
+
+<style>
+    header {
+    background-color: #fff;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+  }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-left {
+    width: 30%;
+  }
+
+  .nav-right {
+    width: 70%;
+  }
+
+  .items-list {
+    display: flex;
+    gap: 1rem;
+    justify-content: end;
+  }
+  
+  .nav-links {
+    list-style: none;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav-links a.menu-item {
+    /* Additional styles if needed */
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+
+  img {
+    display: block;
+    margin-left: 0.5rem;
+  }
+</style>

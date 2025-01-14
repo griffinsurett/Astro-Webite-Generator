@@ -17,7 +17,11 @@ const baseSchema = z.object({
   hasPage: z.boolean().optional(),
   featured: z.boolean().optional(),
   redirectFrom: z.array(z.string()).optional(),
-  parent: z.array(z.string()).optional(), // Changed to array for multiple parents
+  /**
+   * Optional parent slug—only relevant if the collection is hierarchical.
+   * (We’ll rely on `metadata.isHierarchical` to decide if we use it.)
+   */
+  parent: z.string().optional(),
 });
 
 /**
@@ -75,7 +79,7 @@ const services = defineCollection({
       featuredImage: '../assets/background.svg',
       featured: true,
       // Because isHierarchical is true, we interpret parent as referencing another item in this same collection
-      parent: ['website-creation', 'digital-marketing'], // Multiple parents
+      parent: 'website-creation',
     },
     // Another child of Website Creation
     {
@@ -150,7 +154,7 @@ const projects = defineCollection({
       description: 'An innovative project with cutting-edge design.',
       icon: '🎨',
       featuredImage: '../assets/background.svg',
-      services: ['web-development', "digital-marketing"],
+      services: ['web-development'],
     },
   ],
 });

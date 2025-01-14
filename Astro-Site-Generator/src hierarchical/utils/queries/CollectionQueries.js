@@ -5,7 +5,7 @@ import {
   fetchCollectionItems,
   fetchFeaturedItems,
   formatCollectionName,
-} from "../../utils/collections/";
+} from "../collections/index.js";
 
 import { collections } from "../../content/config.ts"; // so we can read all data
 
@@ -23,7 +23,7 @@ import {
   findChildren,
   findParents,
   findSiblings,
-} from "../../utils/collections/HierarchicalUtils.js";
+} from "../collections/HierarchicalHelpers.js";
 
 export function generateCollectionQueries() {
   const queries = [];
