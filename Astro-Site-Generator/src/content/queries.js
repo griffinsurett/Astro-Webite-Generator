@@ -1,16 +1,23 @@
 // src/content/queries.js
-import { generateCollectionQueries } from "../utils/collections/";
+import { collections } from "./config";
+import { generateCollectionQueries } from "../utils/collections";
 
-/** 1) Your static queries */
+// Import utility functions
+import {
+  mergeCollectionItemsIntoStaticQueries,
+  buildMenuItemsFromCollection,
+  handleCollectionLevelAddToQuery,
+  handleSingleItemAddToQuery,
+} from "../utils/queries/queryUtils.js";
+
+// 1) Base Static Queries
 const STATIC_QUERIES = [
   {
     name: "NavMenu",
     description: "Main navigation menu items",
     items: [
       { label: "Home", href: "/" },
-      { label: "Services", href: "/services" },
-      { label: "Projects", href: "/projects" },
-      { label: "Testimonials", href: "/testimonials" },
+      // Everything else will be added dynamically from config
     ],
   },
   {
@@ -23,14 +30,23 @@ const STATIC_QUERIES = [
   },
 ];
 
-/** 2) Generate dynamic queries for each collection */
+// 2) Merge Collection and Item-level addToQuery configurations into STATIC_QUERIES
+mergeCollectionItemsIntoStaticQueries(
+  collections,
+  STATIC_QUERIES,
+  buildMenuItemsFromCollection,
+  handleCollectionLevelAddToQuery,
+  handleSingleItemAddToQuery
+);
+
+// 3) Dynamic queries
 const COLLECTION_QUERIES = generateCollectionQueries();
 
-/** 3) Combine both into a single export */
+// 4) Combine & export
 export const QUERIES = [
   ...STATIC_QUERIES,
   ...COLLECTION_QUERIES,
 ];
 
-console.log(QUERIES)
-
+// Debug
+console.log(QUERIES);

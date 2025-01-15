@@ -36,12 +36,10 @@ const hasItems = Array.isArray(items) && items.length > 0;
 ---
 {hasItems ? (
   <div class={`items-template ${className}`}>
-    <div class="items-list">
       {items.map((item) => (
         <ItemComponent key={item.slug} {...item} collection={collection} />
       ))}
     </div>
-  </div>
 ) : (
   <p class="no-items">No items available.</p>
 )}
@@ -49,8 +47,6 @@ const hasItems = Array.isArray(items) && items.length > 0;
 <style>
   .items-template {
     width: 100%;
-  }
-  .items-list {
     display: flex;
     gap: ${gap}; 
   }
