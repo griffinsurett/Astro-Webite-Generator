@@ -1,78 +1,44 @@
 ---
-import ItemsTemplate from "./ItemsTemplate.astro";
-import MenuItem from "./MenuItem.astro";
+import Menu from "./Menu.jsx";
+import siteConfig from '../content/site.config.js'; // Assuming you have site.config
+import { executeQuery } from "../utils/queries/executeQuery.js";
 
-const { siteTitle, logo } = Astro.props;
-
-// You can pass additional props if needed
+// Fetch the NavMenu data during build time
+const navMenuData = await executeQuery("NavMenu");
 ---
+
 <header>
-  <nav>
+  <nav class="navbar">
     <div class="nav-left">
-      <a href="/">
-        <h1>{siteTitle}</h1>
-        <img src={logo} alt="Site Logo" width="115" height="48" />
+      <a href="/" class="logo">
+        <img src={siteConfig.logo} alt="Site Logo" width="115" height="48" />
       </a>
     </div>
     <div class="nav-right">
-    <ItemsTemplate
-      collection="NavMenu"  
-      ItemComponent={MenuItem}
-      queryName="NavMenu"
-      className="nav-links"
-      columns={null} 
-      gap="0"
-    />
-    </div>  
+      <!-- Pass the menu data as props to the Menu component -->
+      <Menu queryName={navMenuData} client:load />
+    </div>
   </nav>
 </header>
 
 <style>
-    header {
+  header {
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 1rem 2rem;
-
   }
-  nav {
+
+  .navbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
   }
 
-  /* .nav-left {
-    width: 30%;
+  .nav-left .logo img {
+    display: block;
   }
 
   .nav-right {
-    width: 70%;
-  } */
-
-  .items-list {
-    display: flex;
-    gap: 1rem;
-    justify-content: end;
-  }
-  
-  .nav-links {
-    list-style: none;
-    gap: 1rem;
-    margin: 0;
-    padding: 0;
-  }
-
-  .nav-links a.menu-item {
-    /* Additional styles if needed */
-  }
-
-  h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-  }
-
-  img {
-    display: block;
-    margin-left: 0.5rem;
+    /* Additional styling if needed */
   }
 </style>

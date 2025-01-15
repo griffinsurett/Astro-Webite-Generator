@@ -25,26 +25,29 @@ export function buildMenuItemsFromCollection(items, colName, labelField = "title
       ])
     );
   
-    // Build tree
+    // Assign children to their respective parents
     for (const itm of items) {
-      const node = nodeMap.get(itm.slug);
-      if (!itm.parent || itm.parent.length === 0) continue;
+      if (!itm.parent) continue;
   
-      for (const parentSlug of itm.parent) {
+      const parentSlugs = Array.isArray(itm.parent) ? itm.parent : [itm.parent];
+      for (const parentSlug of parentSlugs) {
         const parentNode = nodeMap.get(parentSlug);
         if (parentNode) {
-          parentNode.children.push(node);
+          parentNode.children.push(nodeMap.get(itm.slug));
+        } else {
+          console.warn(`Parent slug "${parentSlug}" not found in collection "${colName}".`);
         }
       }
     }
   
-    // Collect top-level
+    // Collect top-level nodes (those without parents)
     const topNodes = [];
     for (const itm of items) {
       if (!itm.parent || itm.parent.length === 0) {
         topNodes.push(nodeMap.get(itm.slug));
       }
     }
+  
     return topNodes;
   }
   
@@ -54,7 +57,7 @@ export function buildMenuItemsFromCollection(items, colName, labelField = "title
    */
   export function handleCollectionLevelAddToQuery(existingQuery, colObj, colName, queryDef, buildMenuItemsFromCollection) {
     const { metadata, data } = colObj;
-    const { name, queryItemText, addItemsToQuery, setChildrenUnderParents } = queryDef;
+    const { name, queryItemText, addItemsToQuery, addHierarchyToQuery } = queryDef;
   
     // Always add root link if `hasPage` is true
     if (metadata.hasPage) {
@@ -71,14 +74,21 @@ export function buildMenuItemsFromCollection(items, colName, labelField = "title
         data,
         colName,
         queryItemText || "title",
-        !!setChildrenUnderParents
+        !!addHierarchyToQuery // Use addHierarchyToQuery instead of setChildrenUnderParents
       );
   
       // If we have a root link & want to nest under that root
-      if (metadata.hasPage && setChildrenUnderParents) {
+      if (metadata.hasPage && addHierarchyToQuery) {
         const rootItem = existingQuery.items.find((x) => x.href === `/${colName}`);
         if (rootItem) {
-          rootItem.children = childMenuNodes;
+          // Merge children to prevent duplication if multiple parents exist
+          const uniqueChildrenMap = new Map();
+          childMenuNodes.forEach((child) => {
+            if (!uniqueChildrenMap.has(child.href)) {
+              uniqueChildrenMap.set(child.href, child);
+            }
+          });
+          rootItem.children = [...rootItem.children, ...Array.from(uniqueChildrenMap.values())];
         }
       } else {
         // Flatten

@@ -35,7 +35,7 @@ const collectionMetadataQuerySchema = z.object({
   name: z.string(),
   queryItemText: z.string().optional(),
   addItemsToQuery: z.boolean().optional(),
-  setChildrenUnderParents: z.boolean().optional(),
+  addHierarchyToQuery: z.boolean().optional(), // NEW: Replaces setChildrenUnderParents
 });
 
 const collectionMetadataSchema = z.object({
@@ -64,7 +64,7 @@ const services = defineCollection({
     subtitle: 'Our offerings to help your business grow',
     description: 'A collection of services, e.g., SEO, web design, dev, etc.',
     icon: '🔍',
-    featuredImage: '../assets/background.svg',
+    featuredImage: '/assets/background.svg',
     hasPage: true,
     itemsHasPage: true,
     redirectFrom: ['service'],
@@ -73,8 +73,8 @@ const services = defineCollection({
       {
         name: "NavMenu",          // The existing (or new) query name to update
         queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
-        addItemsToQuery: false,    // Whether to add all items from the collection into the query
-        setChildrenUnderParents: false, // If true, nest child items under parents (sub-menu style)
+        addItemsToQuery: true,    // Whether to add all items from the collection into the query
+        addHierarchyToQuery: true, 
       },
     ],
   }),
@@ -85,7 +85,7 @@ const services = defineCollection({
       slug: 'website-creation',
       description: 'Launch modern websites with design and dev included.',
       icon: '🌐',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       // No parent → top-level
     },
     // Child of Website Creation
@@ -95,7 +95,7 @@ const services = defineCollection({
       slug: 'web-design',
       description: 'Professional design services focusing on aesthetics and UX.',
       icon: '🎨',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       featured: true,
       // Because isHierarchical is true, we interpret parent as referencing another item in this same collection
       parent: ['website-creation', 'digital-marketing'], // Multiple parents
@@ -107,7 +107,7 @@ const services = defineCollection({
       slug: 'web-development',
       description: 'Professional dev services for scalability and performance.',
       icon: '🖥️',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       featured: true,
       redirectFrom: ['web-dev', 'development'],
       parent: 'website-creation',
@@ -119,7 +119,7 @@ const services = defineCollection({
       slug: 'digital-marketing',
       description: 'Grow audience and brand visibility through strategic campaigns.',
       icon: '📈',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
     },
     // Child of Digital Marketing
     {
@@ -128,7 +128,7 @@ const services = defineCollection({
       slug: 'seo-optimization',
       description: 'Optimize your website to rank higher and attract visitors.',
       icon: '🔍',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       featured: true,
       redirectFrom: ['seo'],
       parent: 'digital-marketing',
@@ -159,7 +159,7 @@ const projects = defineCollection({
         name: "NavMenu",          // The existing (or new) query name to update
         queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
         addItemsToQuery: false,    // Whether to add all items from the collection into the query
-        setChildrenUnderParents: false, // If true, nest child items under parents (sub-menu style)
+        addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
       },
     ],
   }),
@@ -170,7 +170,7 @@ const projects = defineCollection({
       slug: 'project-alpha',
       description: 'Groundbreaking project revolutionizing technology.',
       icon: '🚀',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       services: ['web-development', 'seo-optimization'],
       featured: true,
     },
@@ -180,7 +180,7 @@ const projects = defineCollection({
       slug: 'project-beta',
       description: 'An innovative project with cutting-edge design.',
       icon: '🎨',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       services: ['web-development', "digital-marketing"],
     },
   ],
@@ -198,7 +198,7 @@ const testimonials = defineCollection({
     subtitle: 'Client testimonials from past projects',
     description: 'What our clients say about our work.',
     icon: '💬',
-    featuredImage: '../assets/background.svg',
+    featuredImage: '/assets/background.svg',
     hasPage: true,
     itemsHasPage: false,
     redirectFrom: ['testimonial'],
@@ -208,7 +208,7 @@ const testimonials = defineCollection({
         name: "NavMenu",          // The existing (or new) query name to update
         queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
         addItemsToQuery: false,    // Whether to add all items from the collection into the query
-        setChildrenUnderParents: false, // If true, nest child items under parents (sub-menu style)
+        addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
       },
     ],
   }),
@@ -218,7 +218,7 @@ const testimonials = defineCollection({
       slug: 'alpha-testimonial',
       description: 'Client feedback on Project Alpha’s success.',
       icon: '💬',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       projects: ['project-alpha'],
       featured: true,
     },
@@ -227,7 +227,7 @@ const testimonials = defineCollection({
       slug: 'beta-testimonial-1',
       description: 'First testimonial praising Project Beta’s design.',
       icon: '💬',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       projects: ['project-beta'],
     },
     {
@@ -235,7 +235,7 @@ const testimonials = defineCollection({
       slug: 'beta-testimonial-2',
       description: 'Another testimonial praising Project Beta’s results.',
       icon: '💬',
-      featuredImage: '../assets/background.svg',
+      featuredImage: '/assets/background.svg',
       projects: ['project-beta'],
     },
   ],

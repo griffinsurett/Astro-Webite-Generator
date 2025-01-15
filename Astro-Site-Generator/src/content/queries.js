@@ -30,7 +30,9 @@ const STATIC_QUERIES = [
   },
 ];
 
-// 2) Merge Collection and Item-level addToQuery configurations into STATIC_QUERIES
+/**
+ * 2) Merge Collection and Item-level addToQuery configurations into STATIC_QUERIES
+ */
 mergeCollectionItemsIntoStaticQueries(
   collections,
   STATIC_QUERIES,
@@ -48,5 +50,5 @@ export const QUERIES = [
   ...COLLECTION_QUERIES,
 ];
 
-// Debug
+// Debug: Log the final queries
 console.log(QUERIES);
