@@ -10,6 +10,8 @@
     "skipLibCheck": true,          // Skips type-checking of library files
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
     "paths": {
       "~/*": ["src/*"]
     }

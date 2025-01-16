@@ -1,5 +1,5 @@
 ---
-import { executeQuery } from "../utils/queries/";
+import { executeQuery } from "../utils/queries/executeQuery.js";
 
 /**
  * ItemsTemplate.astro
@@ -8,9 +8,9 @@ import { executeQuery } from "../utils/queries/";
  * - collection: The name of the collection (optional)
  * - ItemComponent: The Astro component used to render each item
  * - queryName: The name of the query to run
- * - columns: ...
- * - gap: ...
- * - className: ...
+ * - columns: Number of columns in the grid (if applicable)
+ * - gap: Gap between grid items
+ * - className: Additional CSS classes
  * - ...rest: any additional props to pass to the query (like slug, currentCollection)
  */
 const {
@@ -35,11 +35,18 @@ const items = await executeQuery(queryName, rest);
 const hasItems = Array.isArray(items) && items.length > 0;
 ---
 {hasItems ? (
-  <div class={`items-template ${className}`}>
-      {items.map((item) => (
-        <ItemComponent key={item.slug} {...item} collection={collection} />
-      ))}
-    </div>
+  <div class={`items-template ${className}`} style={`display: flex; gap: ${gap};`}>
+    {items.map((item) => (
+      <ItemComponent
+        key={item.slug}
+        {...item}
+        collection={collection}
+        hasSubmenu={item.hasSubmenu || false}
+        submenuItems={item.submenuItems || []}
+        currentPath={Astro.url.pathname}
+      />
+    ))}
+  </div>
 ) : (
   <p class="no-items">No items available.</p>
 )}
@@ -47,8 +54,6 @@ const hasItems = Array.isArray(items) && items.length > 0;
 <style>
   .items-template {
     width: 100%;
-    display: flex;
-    gap: ${gap}; 
   }
   .no-items {
     text-align: center;

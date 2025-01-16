@@ -1,0 +1,70 @@
+---
+import React from "react";
+import { Fragment } from "react";
+import SubMenu from "./SubMenu.jsx";
+import { executeQuery } from "../../../utils/queries/executeQuery.js"; // Ensure correct path
+
+const { queryName, className = "" } = Astro.props;
+
+// Fetch menu items based on the provided query
+const menuItems = await executeQuery(queryName);
+---
+
+<nav class={`hierarchical-menu ${className}`}>
+  <ul class="menu-list">
+    {
+      menuItems.map((item) => (
+        <li class="menu-item">
+          <a href={item.href} class="menu-link">
+            {item.label}
+          </a>
+          {item.children && item.children.length > 0 && (
+            <SubMenu client:load items={item.children} />
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .hierarchical-menu {
+    /* Container styles */
+  }
+
+  .menu-list {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  .menu-item {
+    position: relative;
+  }
+
+  .menu-link {
+    text-decoration: none;
+    color: #333;
+    padding: 0.5rem 1rem;
+    display: block;
+    transition: background-color 0.2s ease;
+  }
+
+  .menu-link:hover {
+    background-color: #f0f0f0;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .menu-list {
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .menu-link {
+      padding: 0.75rem 1rem;
+    }
+  }
+</style>

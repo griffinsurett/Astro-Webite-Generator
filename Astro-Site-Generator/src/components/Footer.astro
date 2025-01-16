@@ -1,51 +1,41 @@
 ---
-import ItemsTemplate from "./ItemsTemplate.astro";
-import MenuItem from "./MenuItem.astro";
+import Menu from "./Menu/RegularMenu/Menu.astro";
 
-// Fetch footer menu items
 const { text } = Astro.props;
-
-// Define the ItemComponent as MenuItem
-const ItemComponent = MenuItem;
-
-// Optional: Define additional props or classes
 ---
 <footer>
   <p>{text}</p>
-  <ItemsTemplate
-    collection="FooterMenu"  // Optional: Can be used if needed
-    ItemComponent={ItemComponent}
-    queryName="FooterMenu"
-    className="footer-links"
-    columns={null} // Not using grid for footer links
-    gap="0"
-  />
+  <Menu queryName="FooterMenu" className="footer-menu" />
 </footer>
 
 <style>
   footer {
-    background-color: #fff;
+    background-color: #fff; /* Neutral background */
     padding: 1rem 2rem;
     text-align: center;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    /* Removed box-shadow for simplicity */
   }
 
-  .footer-links {
-    list-style: none; 
+  .footer-menu .nav-links {
+    list-style: none;
     display: flex;
-    gap: 1rem;
-    justify-content: center;
-    margin: 0.5rem 0 0 0;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0 0 0;
     padding: 0;
+    align-items: center;
   }
 
-  .footer-links a.menu-item {
-    /* Additional styles if needed */
+  .footer-menu .nav-links li a {
+    text-decoration: none;
+    color: #666; /* Subtle text color */
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    border-radius: 4px; /* Optional: Remove if you prefer no rounded corners */
   }
 
-  p {
-    margin: 0;
-    color: #666;
-    font-size: 0.9rem;
+  .footer-menu .nav-links li a:hover {
+    color: #333; /* Darker text on hover */
+    background-color: #f0f0f0; /* Light gray background on hover */
   }
 </style>
