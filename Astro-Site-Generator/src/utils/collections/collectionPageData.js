@@ -12,20 +12,19 @@ export async function getCollectionPageData(collection) {
 
   // 2) Grab this collection's metadata from config
   const metadata = collections[collection]?.metadata || {};
-  // metadata should have: { title, subtitle, description, icon, featuredImage, etc. }
 
   // 3) The final pageTitle and pageDescription can come directly from that metadata
-  //    For example, we could use `metadata.title` or a fallback:
   const pageTitle = metadata.title || formatCollectionName(collection);
   const pageSubtitle = metadata.subtitle || "";
   const pageDescription = metadata.description || "";
 
-  // 4) Return items and the relevant metadata
+  // 4) Return items, metadata, and relevant page data
   return {
     items,
-    pageTitle,       // e.g. "Services"
-    pageSubtitle,    // e.g. "Our offerings to help your business grow"
-    pageDescription, // e.g. "A collection of services provided by the company..."
+    pageTitle,       // e.g., "Services"
+    pageSubtitle,    // e.g., "Our offerings to help your business grow"
+    pageDescription, // e.g., "A collection of services provided by the company..."
+    hasPage: metadata.hasPage, // Include the hasPage property
   };
 }
 
