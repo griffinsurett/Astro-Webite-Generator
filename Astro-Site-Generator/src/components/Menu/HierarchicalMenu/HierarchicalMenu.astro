@@ -1,6 +1,5 @@
 ---
 import React from "react";
-import { Fragment } from "react";
 import SubMenu from "./SubMenu.jsx";
 import { executeQuery } from "../../../utils/queries/executeQuery.js"; // Ensure correct path
 
@@ -10,20 +9,21 @@ const { queryName, className = "" } = Astro.props;
 const menuItems = await executeQuery(queryName);
 ---
 
-<nav class={`hierarchical-menu ${className}`}>
-  <ul class="menu-list">
-    {
-      menuItems.map((item) => (
-        <li class="menu-item">
-          <a href={item.href} class="menu-link">
-            {item.label}
-          </a>
+<nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
+  <ul class="menu-list" role="menubar">
+    {menuItems.map((item) => (
+      <li class="menu-item" role="none">
+        <a href={item.href} class="menu-link" role="menuitem" aria-haspopup={item.children && item.children.length > 0 ? "true" : "false"} aria-expanded="false">
+          <span class="menu-label">{item.label}</span>
           {item.children && item.children.length > 0 && (
-            <SubMenu client:load items={item.children} />
+            <span class="menu-arrow" aria-hidden="true">▼</span>
           )}
-        </li>
-      ))
-    }
+        </a>
+        {item.children && item.children.length > 0 && (
+          <SubMenu items={item.children} />
+        )}
+      </li>
+    ))}
   </ul>
 </nav>
 
@@ -48,12 +48,32 @@ const menuItems = await executeQuery(queryName);
     text-decoration: none;
     color: #333;
     padding: 0.5rem 1rem;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     transition: background-color 0.2s ease;
+    min-width: 150px; /* Optional: Ensures consistent width */
   }
 
-  .menu-link:hover {
+  .menu-link:hover,
+  .menu-link:focus {
     background-color: #f0f0f0;
+  }
+
+  .menu-label {
+    flex-grow: 1;
+  }
+
+  .menu-arrow {
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+  }
+
+  /* Rotate arrow when submenu is open */
+  .menu-item:hover > .menu-link > .menu-arrow,
+  .menu-item:focus-within > .menu-link > .menu-arrow {
+    transform: rotate(180deg);
   }
 
   /* Responsive Adjustments */
@@ -65,6 +85,11 @@ const menuItems = await executeQuery(queryName);
 
     .menu-link {
       padding: 0.75rem 1rem;
+    }
+
+    .menu-arrow {
+      margin-left: 0;
+      margin-top: 0.25rem;
     }
   }
 </style>
