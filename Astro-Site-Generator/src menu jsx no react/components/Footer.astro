@@ -1,0 +1,41 @@
+---
+import Menu from "./Menu/RegularMenu/Menu.astro";
+
+const { text } = Astro.props;
+---
+<footer>
+  <p>{text}</p>
+  <Menu queryName="FooterMenu" className="footer-menu" />
+</footer>
+
+<style>
+  footer {
+    background-color: #fff; /* Neutral background */
+    padding: 1rem 2rem;
+    text-align: center;
+    /* Removed box-shadow for simplicity */
+  }
+
+  .footer-menu .nav-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0 0 0;
+    padding: 0;
+    align-items: center;
+  }
+
+  .footer-menu .nav-links li a {
+    text-decoration: none;
+    color: #666; /* Subtle text color */
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    border-radius: 4px; /* Optional: Remove if you prefer no rounded corners */
+  }
+
+  .footer-menu .nav-links li a:hover {
+    color: #333; /* Darker text on hover */
+    background-color: #f0f0f0; /* Light gray background on hover */
+  }
+</style>

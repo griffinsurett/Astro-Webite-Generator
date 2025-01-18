@@ -1,7 +1,7 @@
 // src/components/Menu/HierarchicalMenu/SubMenu.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
-import './sub-menu.css'; // Import the CSS
+import './SubMenu.css'; // Import the CSS
 
 const SubMenu = ({ items }) => {
   return (

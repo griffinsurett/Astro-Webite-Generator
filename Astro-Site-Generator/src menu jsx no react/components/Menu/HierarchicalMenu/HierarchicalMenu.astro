@@ -1,16 +1,14 @@
 ---
 import SubMenu from "./SubMenu.jsx";
 import { executeQuery } from "../../../utils/queries/executeQuery.js"; // Ensure correct path
-import React from 'react';
-import HamburgerMenu from './HamburgerMenu/HamburgerMenu.jsx'; // Import the new HamburgerMenu
 
 const { queryName, className = "" } = Astro.props;
 
 // Fetch menu items based on the provided query
 const menuItems = await executeQuery(queryName);
 ---
-<nav class="hierarchical-menu" aria-label="Main Navigation">
-  {/* Regular Hierarchical Menu for Larger Screens */}
+
+<nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
   <ul class="menu-list" role="menubar">
     {menuItems.map((item) => (
       <li class="menu-item" role="none">
@@ -26,8 +24,6 @@ const menuItems = await executeQuery(queryName);
       </li>
     ))}
   </ul>
-
-    <HamburgerMenu client:load menuItems={menuItems} />
 </nav>
 
 <style>
@@ -82,7 +78,17 @@ const menuItems = await executeQuery(queryName);
   /* Responsive Adjustments */
   @media (max-width: 768px) {
     .menu-list {
-      display: none; /* Hide the regular menu on small screens */
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .menu-link {
+      padding: 0.75rem 1rem;
+    }
+
+    .menu-arrow {
+      margin-left: 0;
+      margin-top: 0.25rem;
     }
   }
 </style>

@@ -1,0 +1,64 @@
+---
+import HierarchicalMenu from "./Menu/HierarchicalMenu/HierarchicalMenu.astro";
+import siteConfig from "../content/site.config.js";
+---
+
+<header class="navbar">
+  <div class="nav-left">
+    <a href="/" class="logo-container">
+      <h1 class="site-title">{siteConfig.title}</h1>
+      <img src={siteConfig.logo} alt="Site Logo" class="logo" />
+    </a>
+  </div>
+  <div class="nav-right">
+    <!-- Hierarchical Menu Integration -->
+    <HierarchicalMenu queryName="NavMenu" className="nav-links" />
+  </div>
+</header>
+
+<style>
+  header {
+    background-color: #fff; /* Neutral background */
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative; /* To position submenus correctly */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .nav-left {
+    display: flex;
+    align-items: center;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333; /* Neutral text color */
+  }
+
+  .site-title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #333;
+  }
+
+  .logo {
+    display: block;
+    margin-left: 0.5rem;
+    width: 115px;
+    height: 48px;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .nav-right {
+      width: 100%;
+      margin-top: 1rem;
+    }
+
+    /* You might want to adjust the menu for mobile, e.g., implement a hamburger menu */
+  }
+</style>
