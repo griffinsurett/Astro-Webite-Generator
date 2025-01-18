@@ -54,8 +54,7 @@
   position: fixed;
   top: 0;
   left: -100%;
-  width: 75%;
-  max-width: 300px;
+  width: var(--hamburger-menu-width, 75%); /* Use CSS variable with fallback */
   height: 100%;
   background-color: #fff;
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.1);

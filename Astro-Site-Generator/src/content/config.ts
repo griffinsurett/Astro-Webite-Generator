@@ -133,6 +133,17 @@ const services = defineCollection({
       redirectFrom: ['seo'],
       parent: 'digital-marketing',
     },
+    {
+      title: 'SEM Campaigns',
+      subtitle: 'Improve your site’s visibility',
+      slug: 'sem-campaigns',
+      description: 'Optimize your website to rank higher and attract visitors.',
+      icon: '🔍',
+      featuredImage: '/assets/background.svg',
+      featured: true,
+      redirectFrom: ['seo'],
+      parent: 'seo-optimization',
+    },
   ],
 });
 

@@ -1,0 +1,55 @@
+---
+import SubMenu from "./SubMenu.jsx"; // Ensure the path is correct
+import MenuItem from "../../MenuItem.astro"; // Import the Astro-based MenuItem
+import PropTypes from 'prop-types';
+
+// Define props using Astro's `defineProps`
+interface Props {
+  menuItems: Array<{
+    label: string;
+    href: string;
+    children?: Array<any>;
+  }>;
+}
+
+const { menuItems } = Astro.props as Props;
+---
+<ul class="menu-list" role="menubar">
+  {menuItems.map((item) => (
+    <li class="menu-item" role="none">
+      <MenuItem
+        label={item.label}
+        href={item.href}
+        hasChildren={item.children && item.children.length > 0}
+      />
+      {item.children && item.children.length > 0 && (
+        <span class="menu-arrow" aria-hidden="true">▼</span>
+        <SubMenu items={item.children} />
+      )}
+    </li>
+  ))}
+</ul>
+
+<style>
+  .menu-list {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  li.menu-item {
+    position: relative;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+  }
+
+  li.menu-item:hover {
+    background-color: #f0f0f0;
+  }
+
+  li.menu-item.active {
+    background-color: #e0e0e0;
+  }
+</style>
