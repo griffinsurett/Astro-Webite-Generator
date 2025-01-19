@@ -8,7 +8,7 @@ const HamburgerMenu = ({
   queryName,
   Width,
   className = '',
-  showCloseButton = true,
+  showCloseButton = false,
   HamburgerTransform = true, // New prop with default value true
 }) => {
   const [isOpen, setIsOpen] = useState(false);

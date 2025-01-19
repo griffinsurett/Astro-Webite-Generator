@@ -6,33 +6,32 @@ import ReactSlider from "./Slider.jsx";
 const {
   queryName,
   autoplay = true,
-  autoplaySpeed = 1000,
-  infinite = true,
+  autoplaySpeed = 3000,
   slidesShown = 1,
   slidesScrolled = 1,
   sideArrows = true,
+  slideDirection = 'left', // Default direction
+  slideDots = true, // Default to false
+  infinite = false, // New prop with default value
   ItemComponent, 
   ...rest
 } = Astro.props;
-
+    
 // 1) Fetch items using your dynamic queries system
 //    Pass any extra props (in rest) if your query needs them
 const items = await executeQuery(queryName, rest);
 ---
-
-{/* 
-  Render the React slider component. 
-  Note: `client:load` ensures the React code is loaded on the client.
-  You can also consider `client:idle` or `client:visible` for performance. 
-*/}
+    
 <ReactSlider
   client:load
   items={items}
   autoplay={autoplay}
   autoplaySpeed={autoplaySpeed}
-  infinite={infinite}
   slidesShown={slidesShown}
   slidesScrolled={slidesScrolled}
   sideArrows={sideArrows}
+  slideDirection={slideDirection} 
+  slideDots={slideDots} 
+  infinite={infinite}
   ItemComponent={ItemComponent}
 />

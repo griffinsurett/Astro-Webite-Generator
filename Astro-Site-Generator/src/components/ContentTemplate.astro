@@ -2,7 +2,7 @@
 import { getCollectionPageData, formatCollectionName } from '../utils/collections/';
 import Button from './Button.astro';
 
-const { collection, children, viewAllHref, viewAllText } = Astro.props;
+const { collection, children, classname, viewAllHref, viewAllText } = Astro.props;
 
 if (!collection || typeof collection !== 'string') {
   throw new Error(`The "collection" prop must be a non-empty string.`);
@@ -22,7 +22,7 @@ const finalViewAllText = viewAllText || `View All ${formatCollectionName(collect
 const currentPath = Astro.url.pathname;
 const isCurrentPageCollectionRoot = currentPath === `/${collection}`;
 ---
-<div class="w-full flex justify-center flex-col items-center">
+<div class={`w-full flex justify-center flex-col ${classname}`}>
   <div class="text-center mb-8">
     <h2 class="text-2xl md:text-3xl text-gray-333 mb-2">{pageTitle}</h2>
     <p class="text-lg text-gray-666">{pageDescription}</p>
