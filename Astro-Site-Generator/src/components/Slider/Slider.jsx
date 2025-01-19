@@ -5,6 +5,7 @@ import ReactCard from './ReactCard';
 
 /**
  * A lightweight React-based carousel/slider component with optional infinite looping.
+ * Implements cloned slides for seamless infinite looping.
  * 
  * Props:
  * - items: array of data to display (each item will render inside `ItemComponent`).
@@ -30,7 +31,7 @@ function Slider({
   infinite = false, // New prop
   ItemComponent = ReactCard,
 }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex, setCurrentIndex] = useState(infinite ? slidesShown : 0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const trackRef = useRef(null);
   const intervalRef = useRef(null);
@@ -38,13 +39,20 @@ function Slider({
 
   const totalItems = items.length;
 
-  // Calculate maxIndex based on slidesShown
-  const maxIndex = totalItems - slidesShown;
+  // Create cloned slides
+  const clonedStart = infinite ? items.slice(-slidesShown) : [];
+  const clonedEnd = infinite ? items.slice(0, slidesShown) : [];
+  const extendedItems = [...clonedStart, ...items, ...clonedEnd];
+
+  const extendedTotal = extendedItems.length;
+
+  // Calculate maxIndex based on infinite prop
+  const maxIndex = infinite ? totalItems + slidesShown : totalItems - slidesShown;
 
   /**
    * moveSlides:
    * Moves the slider in the specified direction.
-   * Handles infinite looping if enabled.
+   * Handles infinite looping by updating currentIndex accordingly.
    */
   const moveSlides = useCallback((direction) => {
     if (isTransitioning || totalItems === 0) return; // Prevent action during transition or if no items
@@ -55,25 +63,25 @@ function Slider({
       newIndex += slidesScrolled;
       if (newIndex > maxIndex) {
         if (infinite) {
-          newIndex = newIndex % (maxIndex + 1); // Wrap around using modulo
+          newIndex = newIndex + slidesScrolled;
         } else {
-          newIndex = maxIndex; // Clamp to maxIndex
+          newIndex = maxIndex;
         }
       }
     } else if (direction === 'right') {
       newIndex -= slidesScrolled;
-      if (newIndex < 0) {
+      if (newIndex < slidesShown) {
         if (infinite) {
-          newIndex = (maxIndex + 1 + newIndex) % (maxIndex + 1); // Wrap around using modulo
+          newIndex = newIndex - slidesScrolled;
         } else {
-          newIndex = 0; // Clamp to 0
+          newIndex = slidesShown;
         }
       }
     }
 
     setCurrentIndex(newIndex);
     setIsTransitioning(true);
-  }, [currentIndex, isTransitioning, slidesScrolled, infinite, totalItems, maxIndex]);
+  }, [currentIndex, isTransitioning, slidesScrolled, infinite, totalItems, maxIndex, slidesShown]);
 
   /**
    * Autoplay effect:
@@ -93,10 +101,35 @@ function Slider({
 
   /**
    * Handle transition end:
-   * Resets the transitioning state.
+   * Resets the transitioning state and handles the infinite loop by resetting the currentIndex without transition.
    */
   const handleTransitionEnd = () => {
     setIsTransitioning(false);
+
+    if (infinite) {
+      if (currentIndex >= totalItems + slidesShown) {
+        // If we've moved past the last original slide, reset to the first original slide
+        setCurrentIndex(slidesShown);
+        // Temporarily disable transition to make the jump seamless
+        trackRef.current.style.transition = 'none';
+        trackRef.current.style.transform = `translateX(-${slidesShown * (100 / slidesShown)}%)`;
+        // Force reflow to apply the transform without transition
+        void trackRef.current.offsetWidth;
+        // Re-enable transition
+        setTimeout(() => {
+          trackRef.current.style.transition = 'transform 0.3s ease-in-out';
+        }, 0);
+      } else if (currentIndex < slidesShown) {
+        // If we've moved before the first original slide, reset to the last original slide
+        setCurrentIndex(totalItems + slidesShown - slidesScrolled);
+        trackRef.current.style.transition = 'none';
+        trackRef.current.style.transform = `translateX(-${(totalItems + slidesShown - slidesScrolled) * (100 / slidesShown)}%)`;
+        void trackRef.current.offsetWidth;
+        setTimeout(() => {
+          trackRef.current.style.transition = 'transform 0.3s ease-in-out';
+        }, 0);
+      }
+    }
   };
 
   /**
@@ -177,17 +210,17 @@ function Slider({
    */
   const indicators = [];
   if (slideDots) {
-    const totalIndicators = infinite ? Math.ceil(totalItems / slidesScrolled) : maxIndex + 1;
+    const totalIndicators = infinite ? totalItems : maxIndex + 1;
 
     for (let i = 0; i < totalIndicators; i++) {
       indicators.push(
         <button
           key={i}
           className={`w-3 h-3 rounded-full mx-1 ${
-            currentIndex === i * slidesScrolled ? 'bg-blue-500' : 'bg-gray-300'
+            currentIndex === i * slidesScrolled + slidesShown ? 'bg-blue-500' : 'bg-gray-300'
           }`}
           onClick={() => {
-            setCurrentIndex(i * slidesScrolled);
+            setCurrentIndex(i * slidesScrolled + slidesShown);
             setIsTransitioning(true);
           }}
           aria-label={`Go to slide ${i + 1}`}
@@ -208,9 +241,9 @@ function Slider({
           ref={trackRef}
           onTransitionEnd={handleTransitionEnd}
         >
-          {items.map((item, index) => (
+          {extendedItems.map((item, index) => (
             <div
-              key={`${item.slug}-${index}`} // Use index to ensure unique keys in infinite mode
+              key={`${item.slug}-${index}`} // Ensure unique keys with index
               className="flex-shrink-0 w-full"
               style={{ flex: `0 0 ${100 / slidesShown}%` }}
             >
@@ -242,7 +275,7 @@ function Slider({
             "
             onClick={() => moveSlides('right')} // Move to previous slides
             aria-label="Previous Slide"
-            disabled={!infinite && currentIndex === 0} // Disable if not infinite and at first slide
+            disabled={!infinite && currentIndex === slidesShown} // Disable if not infinite and at first slide
           >
             &larr;
           </button>
@@ -259,7 +292,7 @@ function Slider({
             "
             onClick={() => moveSlides('left')} // Move to next slides
             aria-label="Next Slide"
-            disabled={!infinite && currentIndex >= maxIndex} // Disable if not infinite and at last slide
+            disabled={!infinite && currentIndex >= maxIndex + slidesShown} // Disable if not infinite and at last slide
           >
             &rarr;
           </button>
