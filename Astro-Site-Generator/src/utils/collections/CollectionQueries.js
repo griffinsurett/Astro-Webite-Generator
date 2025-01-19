@@ -60,90 +60,97 @@ export function generateCollectionQueries() {
       },
     });
 
-// Inside generateCollectionQueries()
-queries.push({
-  name: `Related${formattedColName}`,
-  description: `Items from "${colName}" that reference or are referenced by the current item (multi-hop + same-collection).`,
-  async getItems({ slug, currentCollection }) {
-    // 1) AGGREGATOR MODE: No slug, but we have currentCollection
-    if (!slug && currentCollection) {
-      // This is the old aggregator logic for /[collection] index pages
-      const currentColObj = collections[currentCollection];
-      if (!currentColObj) return [];
+    // Inside generateCollectionQueries()
+    queries.push({
+      name: `Related${formattedColName}`,
+      description: `Items from "${colName}" that reference or are referenced by the current item (multi-hop + same-collection).`,
+      async getItems({ slug, currentCollection }) {
+        // 1) AGGREGATOR MODE: No slug, but we have currentCollection
+        if (!slug && currentCollection) {
+          // This is the old aggregator logic for /[collection] index pages
+          const currentColObj = collections[currentCollection];
+          if (!currentColObj) return [];
 
-      // Grab all items from the currentCollection
-      const allItemsInCurrent = currentColObj.data;
-      // We'll gather references in a Set for uniqueness
-      const aggregatorSet = new Set();
+          // Grab all items from the currentCollection
+          const allItemsInCurrent = currentColObj.data;
+          // We'll gather references in a Set for uniqueness
+          const aggregatorSet = new Set();
 
-      for (const item of allItemsInCurrent) {
-        if (colName !== currentCollection) {
-          // Cross-collection references
-          const multiHopItems = findMultiHopReferences(item, currentCollection, colName);
-          for (const refItem of multiHopItems) {
-            aggregatorSet.add(refItem);
+          for (const item of allItemsInCurrent) {
+            if (colName !== currentCollection) {
+              // Cross-collection references
+              const multiHopItems = findMultiHopReferences(
+                item,
+                currentCollection,
+                colName
+              );
+              for (const refItem of multiHopItems) {
+                aggregatorSet.add(refItem);
+              }
+            } else {
+              // Same-collection references
+              const sameColItems = findSameCollectionReferences(item, colName);
+              for (const refItem of sameColItems) {
+                aggregatorSet.add(refItem);
+              }
+            }
           }
-        } else {
-          // Same-collection references
-          const sameColItems = findSameCollectionReferences(item, colName);
-          for (const refItem of sameColItems) {
-            aggregatorSet.add(refItem);
-          }
+
+          // Convert to array, map in an href, return
+          return [...aggregatorSet].map((item) => ({
+            ...item,
+            href: `/${colName}/${item.slug}`,
+          }));
         }
-      }
 
-      // Convert to array, map in an href, return
-      return [...aggregatorSet].map((item) => ({
-        ...item,
-        href: `/${colName}/${item.slug}`,
-      }));
-    }
+        // 2) ITEM-LEVEL MODE: We have a slug and a currentCollection
+        if (!slug || !currentCollection) return [];
+        const currentColObj = collections[currentCollection];
+        if (!currentColObj) return [];
 
-    // 2) ITEM-LEVEL MODE: We have a slug and a currentCollection
-    if (!slug || !currentCollection) return [];
-    const currentColObj = collections[currentCollection];
-    if (!currentColObj) return [];
+        // Find the current item
+        const currentItem = currentColObj.data.find((i) => i.slug === slug);
+        if (!currentItem) return [];
 
-    // Find the current item
-    const currentItem = currentColObj.data.find((i) => i.slug === slug);
-    if (!currentItem) return [];
+        // Cross-collection references (unchanged)
+        if (colName !== currentCollection) {
+          const multiHopItems = findMultiHopReferences(
+            currentItem,
+            currentCollection,
+            colName
+          );
+          const unique = Array.from(new Set(multiHopItems));
+          return unique.map((item) => ({
+            ...item,
+            href: `/${colName}/${item.slug}`,
+          }));
+        }
 
-    // Cross-collection references (unchanged)
-    if (colName !== currentCollection) {
-      const multiHopItems = findMultiHopReferences(
-        currentItem,
-        currentCollection,
-        colName
-      );
-      const unique = Array.from(new Set(multiHopItems));
-      return unique.map((item) => ({
-        ...item,
-        href: `/${colName}/${item.slug}`,
-      }));
-    }
-
-    // SAME-COLLECTION REFERENCES
-    // Check if the target collection is hierarchical
-    const isTargetHierarchical = !!collections[colName].metadata.isHierarchical;
-    if (isTargetHierarchical) {
-      // If hierarchical → Return siblings
-      const itemsInSameCollection = collections[colName].data;
-      const siblings = findSiblings(currentItem, itemsInSameCollection);
-      return siblings.map((sibling) => ({
-        ...sibling,
-        href: `/${colName}/${sibling.slug}`,
-      }));
-    } else {
-      // Otherwise (non-hierarchical) → Use the old same-collection references
-      const sameColItems = findSameCollectionReferences(currentItem, colName);
-      return sameColItems.map((item) => ({
-        ...item,
-        href: `/${colName}/${item.slug}`,
-      }));
-    }
-  },
-});
-
+        // SAME-COLLECTION REFERENCES
+        // Check if the target collection is hierarchical
+        const isTargetHierarchical =
+          !!collections[colName].metadata.isHierarchical;
+        if (isTargetHierarchical) {
+          // If hierarchical → Return siblings
+          const itemsInSameCollection = collections[colName].data;
+          const siblings = findSiblings(currentItem, itemsInSameCollection);
+          return siblings.map((sibling) => ({
+            ...sibling,
+            href: `/${colName}/${sibling.slug}`,
+          }));
+        } else {
+          // Otherwise (non-hierarchical) → Use the old same-collection references
+          const sameColItems = findSameCollectionReferences(
+            currentItem,
+            colName
+          );
+          return sameColItems.map((item) => ({
+            ...item,
+            href: `/${colName}/${item.slug}`,
+          }));
+        }
+      },
+    });
 
     /* -----------------------------------------------
        NEW: Add hierarchy-specific queries if “isHierarchical” is true

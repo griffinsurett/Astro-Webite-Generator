@@ -13,16 +13,16 @@ interface Props {
 const {
   queryName,
   className = "",
-  hamburgerOnly = false,
+  hamburgerOnly = true,
 } = Astro.props as Props;
 
 // 2) Fetch menu items
-const menuItems = await executeQuery(queryName);
+const query = await executeQuery(queryName);
 ---
 <nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
   {!hamburgerOnly && (
     <div class="bar-menu hidden md:block">
-      <BarMenu className="bar-menu" menuItems={menuItems} />
+      <BarMenu className="bar-menu" queryName={query} />
     </div>
   )}
 
@@ -38,9 +38,9 @@ const menuItems = await executeQuery(queryName);
     }
   >
     <HamburgerMenu
-      Width="75%"
+      Width={"3/4"}
       client:load
-      menuItems={menuItems}
+      queryName={query}
     />
   </div>
 </nav>

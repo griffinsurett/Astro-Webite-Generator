@@ -1,11 +1,16 @@
+// src/components/Menu/HierarchicalMenu/HamburgerMenu/SubMenu.jsx
 import React from 'react';
 import PropTypes from 'prop-types';
 import HamburgerMenuItem from './MenuItem.jsx';
-import './hamburger-menu.css';
 
 const HamburgerSubMenu = ({ items, depth, isMenuOpen, closeMenu }) => {
+  // Calculate padding based on depth
+  const paddingLeft = depth * 4; // Tailwind uses multiples of 4 (e.g., 1rem = pl-4)
+
   return (
-    <ul className={`hamburger-submenu-list depth-${depth}`}>
+    <ul
+      className={`list-none pl-${paddingLeft} mt-2 border-l-2 border-gray-200`}
+    >
       {items.map((item) => (
         <HamburgerMenuItem
           key={item.href}

@@ -1,8 +1,8 @@
+// src/components/Menu/HierarchicalMenu/HamburgerMenu/MenuItem.jsx
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import HamburgerSubMenu from "./SubMenu.jsx";
 import Arrow from "../Arrow/Arrow.jsx";
-import "./hamburger-menu.css";
 
 const HamburgerMenuItem = ({ item, depth = 0, isMenuOpen, closeMenu }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,18 +17,18 @@ const HamburgerMenuItem = ({ item, depth = 0, isMenuOpen, closeMenu }) => {
   }, [isMenuOpen, isOpen]);
 
   return (
-    <li className={`hamburger-menu-item depth-${depth}`}>
-      <div className="hamburger-menu-link-wrapper">
+    <li className="mb-4">
+      <div className="flex justify-between items-center">
         <a
           href={item.href}
-          className="hamburger-menu-link"
+          className="text-gray-800 text-lg hover:text-blue-500 focus:text-blue-500 transition-colors duration-200"
           onClick={closeMenu}
         >
           {item.label}
         </a>
         {hasChildren && (
           <button
-            className="submenu-toggle"
+            className="bg-transparent border-none cursor-pointer p-2 flex items-center justify-center text-gray-800 hover:text-blue-500 focus:text-blue-500 transition-colors duration-200"
             aria-expanded={isOpen ? "true" : "false"}
             onClick={toggleSubMenu}
             aria-label={isOpen ? "Collapse submenu" : "Expand submenu"}

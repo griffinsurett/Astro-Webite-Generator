@@ -31,9 +31,7 @@ const { title, description } = Astro.props;
     <Header siteTitle={siteConfig.title} logo={siteConfig.logo} />
 
     <main class="px-8 py-8 min-h-[80vh]">
-      <Section>
         <slot />
-      </Section>
     </main>
 
     <Footer />
