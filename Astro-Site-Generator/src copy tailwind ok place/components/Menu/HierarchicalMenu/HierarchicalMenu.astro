@@ -1,0 +1,50 @@
+---
+import BarMenu from "./BarMenu/BarMenu.astro";
+import HamburgerMenu from "./HamburgerMenu/HamburgerMenu.jsx";
+import { executeQuery } from "../../../utils/queries/executeQuery.js";
+
+// 1) Destructure the new "hamburgerOnly" prop, defaulting to false
+interface Props {
+  queryName: string;
+  className?: string;
+  hamburgerOnly?: boolean; // new
+}
+
+const {
+  queryName,
+  className = "",
+  hamburgerOnly = true,
+} = Astro.props as Props;
+
+// 2) Fetch menu items
+const menuItems = await executeQuery(queryName);
+---
+<nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
+  {/*
+    If hamburgerOnly === false => show BarMenu on md+.
+    If hamburgerOnly === true => hide BarMenu altogether.
+  */}
+  {!hamburgerOnly && (
+    <div class="bar-menu hidden md:block">
+      <BarMenu className="bar-menu" menuItems={menuItems} />
+    </div>
+  )}
+
+  {/*
+    If hamburgerOnly === false => show Hamburger only on <md (block md:hidden).
+    If hamburgerOnly === true => show Hamburger always (block).
+  */}
+  <div
+    class={
+      hamburgerOnly
+        ? "hamburger-menu block"       /* show on all screens */
+        : "hamburger-menu block md:hidden" /* existing logic: show only on <md */
+    }
+  >
+    <HamburgerMenu
+      Width="75%"
+      client:load
+      menuItems={menuItems}
+    />
+  </div>
+</nav>

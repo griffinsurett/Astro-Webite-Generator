@@ -1,6 +1,6 @@
 ---
 /**
- * MenuItem.astro
+ * MenuLink.astro
  *
  * Renders an individual menu item.
  *
@@ -17,16 +17,16 @@
 const isActive = href === currentPath;
 ---
 {external ? (
-  <a href={href} target="_blank" rel="noopener noreferrer" class={`menu-item ${className}`} aria-label={label}>
+  <a href={href} target="_blank" rel="noopener noreferrer" class={`menu-link ${className}`} aria-label={label}>
     {label}
   </a>
 ) : (
-  <a href={href} class={`menu-item ${className} ${isActive ? 'active' : ''}`} aria-current={isActive ? 'page' : undefined}>
+  <a href={href} class={`menu-link ${className} ${isActive ? 'active' : ''}`} aria-current={isActive ? 'page' : undefined}>
     {label}
   </a>
 )}
 <style>
-  .menu-item {
+  .menu-link {
     text-decoration: none;
     color: #333;
   }

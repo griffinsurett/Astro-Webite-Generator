@@ -1,27 +1,46 @@
 ---
-import BarMenu from "./BarMenu/BarMenu.astro"; // Import the new BarMenu component
-import HamburgerMenu from './HamburgerMenu/HamburgerMenu.jsx'; // Import the HamburgerMenu
-import { executeQuery } from "../../../utils/queries/executeQuery.js"; // Ensure correct path
+import BarMenu from "./BarMenu/BarMenu.astro";
+import HamburgerMenu from "./HamburgerMenu/HamburgerMenu.jsx";
+import { executeQuery } from "../../../utils/queries/executeQuery.js";
 
-const { queryName, className = "" } = Astro.props;
+// 1) Destructure the new "hamburgerOnly" prop, defaulting to false
+interface Props {
+  queryName: string;
+  className?: string;
+  hamburgerOnly?: boolean; // new
+}
 
-// Fetch menu items based on the provided query
+const {
+  queryName,
+  className = "",
+  hamburgerOnly = false,
+} = Astro.props as Props;
+
+// 2) Fetch menu items
 const menuItems = await executeQuery(queryName);
 ---
-<nav class="hierarchical-menu" aria-label="Main Navigation">
-  {/* Regular Hierarchical Menu for Larger Screens */}
-  <BarMenu menuItems={menuItems} />
+<nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
+  {!hamburgerOnly && (
+    <div class="bar-menu hidden md:block">
+      <BarMenu className="bar-menu" menuItems={menuItems} />
+    </div>
+  )}
 
-  {/* Hamburger Menu for Smaller Screens */}
-  <HamburgerMenu Width="75%" client:load menuItems={menuItems} />
-</nav>
-
-<style>
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    /* Hide the regular menu on small screens */
-    .hierarchical-menu .menu-list {
-      display: none;
+  {/*
+    If hamburgerOnly === false => show Hamburger only on <md (block md:hidden).
+    If hamburgerOnly === true => show Hamburger always (block).
+  */}
+  <div
+    class={
+      hamburgerOnly
+        ? "hamburger-menu block"       /* show on all screens */
+        : "hamburger-menu block md:hidden" /* existing logic: show only on <md */
     }
-  }
-</style>
+  >
+    <HamburgerMenu
+      Width="75%"
+      client:load
+      menuItems={menuItems}
+    />
+  </div>
+</nav>

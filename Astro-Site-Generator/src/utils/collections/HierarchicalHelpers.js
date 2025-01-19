@@ -4,15 +4,20 @@
  * findChildren: returns all direct children of `item` (based on `parent` field).
  * Supports multiple parents.
  */
-export function findChildren(item, items) {
-  // If the current item's parent is an array, check if any of the parents match
-  const parentSlugs = Array.isArray(item.parent) ? item.parent : [item.parent];
-  
-  // Return all items that list any of `parentSlugs` as their parent
-  return items.filter((i) => {
-    if (!i.parent) return false;
-    const childParents = Array.isArray(i.parent) ? i.parent : [i.parent];
-    return childParents.some((pSlug) => parentSlugs.includes(pSlug));
+export function findChildren(currentItem, allItems) {
+  // If the current item’s slug is "website-creation",
+  // we want any item whose parent array includes "website-creation".
+  const mySlug = currentItem.slug;
+
+  return allItems.filter((possibleChild) => {
+    if (!possibleChild.parent) return false;
+
+    // If possibleChild.parent is an array, does it include mySlug?
+    const parentSlugs = Array.isArray(possibleChild.parent)
+      ? possibleChild.parent
+      : [possibleChild.parent];
+
+    return parentSlugs.includes(mySlug);
   });
 }
 
@@ -46,13 +51,35 @@ export function findParents(item, items) {
  * excluding the item itself.
  * Supports multiple parents.
  */
+/**
+ * findSiblings: returns all items that share at least one parent slug with `item`,
+ * excluding the item itself. If `item` has no parent (top-level), it returns
+ * the other top-level items.
+ * Supports multiple parents.
+ */
 export function findSiblings(item, items) {
-  if (!item.parent) return [];
-  const parentSlugs = Array.isArray(item.parent) ? item.parent : [item.parent];
+  // 1) If the item has **no parent**, return top-level siblings
+  if (!item.parent || item.parent.length === 0) {
+    return items.filter((other) => {
+      if (other.slug === item.slug) return false;
+      // "Top-level" means no parent field or empty array
+      return !other.parent || other.parent.length === 0;
+    });
+  }
 
-  return items.filter((i) => {
-    if (i.slug === item.slug || !i.parent) return false;
-    const siblingParents = Array.isArray(i.parent) ? i.parent : [i.parent];
-    return siblingParents.some((pSlug) => parentSlugs.includes(pSlug));
+  // 2) Otherwise, do the normal “share the same parent slug” logic
+  const parentSlugs = Array.isArray(item.parent)
+    ? item.parent
+    : [item.parent];
+
+  return items.filter((other) => {
+    if (other.slug === item.slug || !other.parent) return false;
+    const otherParents = Array.isArray(other.parent)
+      ? other.parent
+      : [other.parent];
+
+    // “Sibling” if there's at least one parent slug in common
+    return otherParents.some((pSlug) => parentSlugs.includes(pSlug));
   });
 }
+

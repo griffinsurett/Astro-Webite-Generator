@@ -1,0 +1,28 @@
+/* src/components/Menu/HierarchicalMenu/Arrow/arrow.css */
+
+.menu-arrow {
+    margin-left: 0.5rem;
+    transition: transform 0.3s ease; /* Smooth rotation */
+    display: inline-block;           /* Ensure proper rotation */
+    font-size: 0.8rem;               /* Adjust size as needed */
+    color: #333;                     /* Match your theme */
+  }
+  
+  /* Initial direction */
+  .arrow-down {
+    transform: rotate(0deg);
+  }
+  
+  .arrow-up {
+    transform: rotate(180deg);
+  }
+  
+  /* Rotate arrow when parent is hovered or focused */
+  /* Updated selectors to match the actual DOM structure */
+  .menu-item:hover > .menu-arrow,
+  .menu-item:focus-within > .menu-arrow,
+  .submenu-item:hover > .submenu-link > .menu-arrow,
+  .submenu-item:focus-within > .submenu-link > .menu-arrow {
+    transform: rotate(180deg);
+  }
+  

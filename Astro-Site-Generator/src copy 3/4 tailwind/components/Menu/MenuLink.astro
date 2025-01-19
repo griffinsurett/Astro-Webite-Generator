@@ -1,0 +1,27 @@
+---
+const { label, href, external = false, className = "", currentPath = "" } = Astro.props;
+const isActive = href === currentPath;
+---
+{external ? (
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    class={`no-underline text-gray-333 ${className}`}
+    aria-label={label}
+  >
+    {label}
+  </a>
+) : (
+  <a
+    href={href}
+    class={`
+      no-underline text-gray-333
+      ${isActive ? 'font-bold border-b-2 border-gray-333' : ''}
+      ${className}
+    `}
+    aria-current={isActive ? 'page' : undefined}
+  >
+    {label}
+  </a>
+)}
