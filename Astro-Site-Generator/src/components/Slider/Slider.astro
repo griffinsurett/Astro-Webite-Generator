@@ -1,0 +1,38 @@
+---
+import { executeQuery } from "../../utils/queries/executeQuery.js";
+import ReactSlider from "./Slider.jsx";
+
+// Destructure props for the slider
+const {
+  queryName,
+  autoplay = true,
+  autoplaySpeed = 1000,
+  infinite = true,
+  slidesShown = 1,
+  slidesScrolled = 1,
+  sideArrows = true,
+  ItemComponent, 
+  ...rest
+} = Astro.props;
+
+// 1) Fetch items using your dynamic queries system
+//    Pass any extra props (in rest) if your query needs them
+const items = await executeQuery(queryName, rest);
+---
+
+{/* 
+  Render the React slider component. 
+  Note: `client:load` ensures the React code is loaded on the client.
+  You can also consider `client:idle` or `client:visible` for performance. 
+*/}
+<ReactSlider
+  client:load
+  items={items}
+  autoplay={autoplay}
+  autoplaySpeed={autoplaySpeed}
+  infinite={infinite}
+  slidesShown={slidesShown}
+  slidesScrolled={slidesScrolled}
+  sideArrows={sideArrows}
+  ItemComponent={ItemComponent}
+/>

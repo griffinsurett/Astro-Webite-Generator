@@ -5,6 +5,7 @@ import ContentTemplate from '../components/ContentTemplate.astro';
 import ItemsTemplate from '../components/ItemsTemplate.astro';
 import ServiceCard from '../components/ServiceCard.astro';
 import CollectionCard from '../components/CollectionsCard.astro';
+import Slider from '~/components/Slider/Slider.astro';
 ---
 <Layout title="Home Page" description="Welcome to our Astro-powered website.">
   
@@ -42,13 +43,17 @@ import CollectionCard from '../components/CollectionsCard.astro';
     <!-- Featured Testimonials Section -->
   <Section>
     <ContentTemplate collection="testimonials">
-      <ItemsTemplate
-        collection="testimonials"
-        ItemComponent={CollectionCard}
-        queryName={"FeaturedTestimonials"} 
-        columns={3}
-        gap="1.5rem"
-      />
+      <Slider
+      queryName={"FeaturedTestimonials"}
+      autoplay={true}
+      autoplaySpeed={3000}
+      infinite={true}
+      slidesShown={1}
+      slidesScrolled={1}
+      sideArrows={true}
+    />
     </ContentTemplate>
   </Section>
+
+
 </Layout>

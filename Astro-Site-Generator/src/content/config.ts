@@ -202,7 +202,6 @@ const testimonials = defineCollection({
     hasPage: true,
     itemsHasPage: false,
     redirectFrom: ['testimonial'],
-    // isHierarchical is NOT set here
     addToQuery: [
       {
         name: "NavMenu",          // The existing (or new) query name to update
@@ -229,6 +228,7 @@ const testimonials = defineCollection({
       icon: '💬',
       featuredImage: '/assets/background.svg',
       projects: ['project-beta'],
+      featured: true,
     },
     {
       title: 'Testimonial for Project Beta #2',
