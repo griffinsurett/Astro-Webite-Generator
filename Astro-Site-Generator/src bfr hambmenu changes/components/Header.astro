@@ -1,0 +1,15 @@
+---
+import HierarchicalMenu from "./Menu/HierarchicalMenu/HierarchicalMenu.astro";
+import siteConfig from "../content/site.config.js";
+---
+<header class="w-full bg-white px-4 py-4 flex items-center justify-between relative shadow-md">
+  <div class="flex items-center">
+    <a href="/" class="flex items-center no-underline text-gray-333">
+      <h1 class="text-xl m-0">{siteConfig.title}</h1>
+      <img src={siteConfig.logo} alt="Site Logo" class="ml-2 w-[115px] h-[48px]" />
+    </a>
+  </div>
+  <div class="nav-right w-auto md:w-auto mt-0">
+    <HierarchicalMenu queryName="NavMenu" className="nav-links"  />
+  </div>
+</header>

@@ -1,0 +1,34 @@
+---
+import { executeQuery } from "../utils/queries/executeQuery.js";
+
+const {
+  collection,
+  ItemComponent,
+  queryName,
+  columns = 3,
+  gap = '1.5rem',
+  className = '',
+  ...rest
+} = Astro.props;
+
+if (!queryName || typeof queryName !== 'string') {
+  throw new Error(`A valid "queryName" prop must be provided to ItemsTemplate.`);
+}
+
+const items = await executeQuery(queryName, rest);
+const hasItems = Array.isArray(items) && items.length > 0;
+---
+{hasItems ? (
+  <div class={`flex flex-wrap w-full ${className}`} style={`gap: ${gap};`}>
+    {items.map((item) => (
+      <ItemComponent
+        key={item.slug}
+        {...item}
+        collection={collection}
+        currentPath={Astro.url.pathname}
+      />
+    ))}
+  </div>
+) : (
+  <p class="text-center text-gray-666 italic py-4">No items available.</p>
+)}

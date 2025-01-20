@@ -1,0 +1,9 @@
+---
+const { children, className = "", style = "" } = Astro.props;
+---
+<section
+  class={`p-8 my-4 bg-gray-f9 rounded ${className}`}
+  style={style}
+>
+  <slot />
+</section>

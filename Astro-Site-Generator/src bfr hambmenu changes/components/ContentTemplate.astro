@@ -1,0 +1,40 @@
+---
+import { getCollectionPageData, formatCollectionName } from '../utils/collections/';
+import Button from './Button.astro';
+
+const { collection, children, classname, viewAllHref, viewAllText } = Astro.props;
+
+if (!collection || typeof collection !== 'string') {
+  throw new Error(`The "collection" prop must be a non-empty string.`);
+}
+
+let pageData;
+try {
+  pageData = await getCollectionPageData(collection);
+} catch (error) {
+  console.error(error.message);
+  Astro.redirect('/404');
+}
+
+const { pageTitle, pageDescription, hasPage } = pageData;
+const finalViewAllHref = viewAllHref || `/${collection}`;
+const finalViewAllText = viewAllText || `View All ${formatCollectionName(collection)}`;
+const currentPath = Astro.url.pathname;
+const isCurrentPageCollectionRoot = currentPath === `/${collection}`;
+---
+<div class={`w-full flex justify-center flex-col ${classname}`}>
+  <div class="text-center mb-8">
+    <h2 class="text-2xl md:text-3xl text-gray-333 mb-2">{pageTitle}</h2>
+    <p class="text-lg text-gray-666">{pageDescription}</p>
+  </div>
+
+  <div>
+    <slot />
+  </div>
+
+  {hasPage && !isCurrentPageCollectionRoot && (
+    <div class="text-center mt-8">
+      <Button text={finalViewAllText} href={finalViewAllHref} />
+    </div>
+  )}
+</div>

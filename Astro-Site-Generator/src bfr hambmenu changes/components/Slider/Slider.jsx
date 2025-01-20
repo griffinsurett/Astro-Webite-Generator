@@ -370,62 +370,73 @@ function Slider({
   }, [drag, moveSlides, slidesShown, slidesScrolled, currentIndex]);
 
   return (
-    <div className="w-full flex flex-col items-center" ref={sliderRef}>
-      {/* Slider Container */}
-      <div className="relative w-full">
-        {/* Slider Track */}
-        <div className="overflow-hidden w-full">
-          <div
-            className="flex transition-transform duration-300 ease-in-out"
-            ref={trackRef}
-            onTransitionEnd={handleTransitionEnd}
-            style={{
-              transform: `translateX(-${currentIndex * (100 / slidesShown)}%)`,
-            }}
-          >
-            {extendedItems.map((item, index) => (
-              <div
-                key={`${item.slug}-${index}`} // Ensure unique keys with index
-                className="flex-shrink-0 w-full"
-                style={{ flex: `0 0 ${100 / slidesShown}%` }}
-              >
-                <ItemComponent {...item} />
-              </div>
-            ))}
-          </div>
+    <div className="relative w-full" ref={sliderRef}>
+      {/* Slider Track */}
+      <div className="overflow-hidden w-full">
+        <div
+          className="flex transition-transform duration-300 ease-in-out"
+          ref={trackRef}
+          onTransitionEnd={handleTransitionEnd}
+          style={{
+            transform: `translateX(-${currentIndex * (100 / slidesShown)}%)`,
+          }}
+        >
+          {extendedItems.map((item, index) => (
+            <div
+              key={`${item.slug}-${index}`} // Ensure unique keys with index
+              className="flex-shrink-0 w-full"
+              style={{ flex: `0 0 ${100 / slidesShown}%` }}
+            >
+              <ItemComponent {...item} />
+            </div>
+          ))}
         </div>
-
-        {/* Navigation Arrows */}
-        {sideArrows && totalItems > slidesShown && (
-          <>
-            {/* Prev Arrow */}
-            <button
-              type="button"
-              className="absolute top-1/2 left-2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              onClick={() => moveSlides('right')} // Move to previous slides
-              aria-label="Previous Slide"
-            >
-              &larr;
-            </button>
-
-            {/* Next Arrow */}
-            <button
-              type="button"
-              className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400"
-              onClick={() => moveSlides('left')} // Move to next slides
-              aria-label="Next Slide"
-            >
-              &rarr;
-            </button>
-          </>
-        )}
       </div>
 
       {/* Indicators */}
       {slideDots && totalItems > slidesShown && (
-        <div className="mt-4 flex space-x-2">
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex">
           {indicators}
         </div>
+      )}
+
+      {/* Navigation Arrows */}
+      {sideArrows && totalItems > slidesShown && (
+        <>
+          {/* Prev Arrow */}
+          <button
+            type="button"
+            className="
+              absolute top-1/2 left-2 
+              transform -translate-y-1/2 
+              bg-white border border-gray-300 
+              rounded-full p-2 shadow 
+              hover:bg-gray-100 focus:outline-none
+              focus:ring-2 focus:ring-gray-400
+            "
+            onClick={() => moveSlides('right')} // Move to previous slides
+            aria-label="Previous Slide"
+          >
+            &larr;
+          </button>
+
+          {/* Next Arrow */}
+          <button
+            type="button"
+            className="
+              absolute top-1/2 right-2 
+              transform -translate-y-1/2 
+              bg-white border border-gray-300 
+              rounded-full p-2 shadow 
+              hover:bg-gray-100 focus:outline-none
+              focus:ring-2 focus:ring-gray-400
+            "
+            onClick={() => moveSlides('left')} // Move to next slides
+            aria-label="Next Slide"
+          >
+            &rarr;
+          </button>
+        </>
       )}
     </div>
   );

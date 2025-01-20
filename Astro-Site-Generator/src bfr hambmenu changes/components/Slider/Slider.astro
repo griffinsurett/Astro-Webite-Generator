@@ -1,0 +1,44 @@
+---
+import { executeQuery } from "../../utils/queries/executeQuery.js";
+import ReactSlider from "./Slider.jsx";
+import CollectionsCard from "../CollectionsCard.astro";
+
+// Destructure props
+const {
+  queryName,
+  autoplay = true,
+  autoplaySpeed = 3000,
+  slidesShown = 1,
+  slidesScrolled = 1,
+  sideArrows = true,
+  slideDirection = "left",
+  slideDots = true,
+  infinite = false,
+  drag = false,
+  ItemComponent,
+  ...rest
+} = Astro.props;
+
+// Fetch items using your dynamic queries system
+const items = await executeQuery(queryName, rest);
+---
+{items.length === 1 ? (
+  // Render fallback for a single item
+  <CollectionsCard {...items[0]} />
+) : (
+  // Render the slider for multiple items
+  <ReactSlider
+    client:load
+    items={items}
+    autoplay={autoplay}
+    autoplaySpeed={autoplaySpeed}
+    slidesShown={slidesShown}
+    slidesScrolled={slidesScrolled}
+    sideArrows={sideArrows}
+    slideDirection={slideDirection}
+    slideDots={slideDots}
+    infinite={infinite}
+    ItemComponent={ItemComponent}
+    drag={drag}
+  />
+)}

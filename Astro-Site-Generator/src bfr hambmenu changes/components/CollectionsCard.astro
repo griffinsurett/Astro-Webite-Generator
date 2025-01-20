@@ -1,0 +1,26 @@
+---
+const { title, description, slug, icon, featuredImage, collection } = Astro.props;
+---
+<article
+  class="
+    border border-gray-ea p-4 rounded-lg
+    transition-shadow duration-200
+    hover:shadow-lg-custom
+  "
+>
+  <h2 class="mb-2">
+    {icon || '📄'}
+    <a href={`/${collection}/${slug}`} class="text-inherit no-underline">
+      {title}
+    </a>
+  </h2>
+  
+  <img
+    src={featuredImage}
+    alt={`${title} Featured Image`}
+    class="max-w-full h-auto rounded mb-4"
+    loading="lazy"
+  />
+  
+  <p class="m-0">{description}</p>
+</article>
