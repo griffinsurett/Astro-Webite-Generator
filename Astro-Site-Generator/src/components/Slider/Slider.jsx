@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import ReactCard from './ReactCard';
 
 /**
- * A lightweight React-based carousel/slider component with optional infinite autoplay.
+ * A lightweight React-based carousel/slider component with optional infinite autoplay and drag support.
  * Implements cloned slides for seamless infinite looping via arrows.
  * 
  * Props:
@@ -17,6 +17,7 @@ import ReactCard from './ReactCard';
  * - slideDirection: string ('left' or 'right') - direction to auto-slide
  * - slideDots: boolean (render indicators/dots)
  * - infinite: boolean (enable infinite autoplay looping)
+ * - drag: boolean (enable drag/swipe functionality)
  * - ItemComponent: a React component to render each item (similar to your ItemsTemplate usage)
  */
 function Slider({
@@ -29,6 +30,7 @@ function Slider({
   slideDirection = 'left',
   slideDots = false,
   infinite = false, // Controls autoplay looping
+  drag = false,
   ItemComponent = ReactCard,
 }) {
   // Initialize currentIndex to account for cloned slides at the start
@@ -243,6 +245,130 @@ function Slider({
     }
   }
 
+  /**
+   * Drag Handling Logic
+   */
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const currentTranslate = useRef(0);
+  const prevTranslate = useRef(0);
+  const sliderWidth = useRef(0);
+
+  /**
+   * Helper function to get the current slider width
+   */
+  const getSliderWidth = () => {
+    if (sliderRef.current) {
+      return sliderRef.current.offsetWidth;
+    }
+    return 0;
+  };
+
+  /**
+   * Start dragging
+   */
+  const handleDragStart = (clientX) => {
+    if (isTransitioning) return; // Prevent dragging during transition
+    isDragging.current = true;
+    startX.current = clientX;
+    sliderWidth.current = getSliderWidth();
+    prevTranslate.current = -currentIndex * (100 / slidesShown);
+    currentTranslate.current = prevTranslate.current;
+    trackRef.current.style.transition = 'none';
+  };
+
+  /**
+   * Handle dragging movement
+   */
+  const handleDragMove = (clientX) => {
+    if (!isDragging.current) return;
+    const deltaX = clientX - startX.current;
+    const deltaPercentage = (deltaX / sliderWidth.current) * 100;
+    currentTranslate.current = prevTranslate.current + deltaPercentage;
+    trackRef.current.style.transform = `translateX(${currentTranslate.current}%)`;
+  };
+
+  /**
+   * End dragging
+   */
+  const handleDragEnd = () => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    const movedBy = currentTranslate.current - prevTranslate.current;
+
+    // Calculate the threshold (25% of slider width)
+    const threshold = 25; // 25%
+
+    // Re-enable transition for smooth animation
+    trackRef.current.style.transition = 'transform 0.3s ease-in-out';
+
+    if (movedBy < -threshold) {
+      moveSlides('left'); // Next slide
+    } else if (movedBy > threshold) {
+      moveSlides('right'); // Previous slide
+    } else {
+      // Revert to original position
+      trackRef.current.style.transform = `translateX(-${currentIndex * (100 / slidesShown)}%)`;
+    }
+  };
+
+  /**
+   * Attach Drag Event Handlers
+   */
+  useEffect(() => {
+    const slider = sliderRef.current;
+
+    if (!drag) return; // Do not attach drag handlers if drag is false
+
+    // Mouse Events
+    const handleMouseDown = (e) => handleDragStart(e.clientX);
+    const handleMouseMove = (e) => handleDragMove(e.clientX);
+    const handleMouseUp = () => handleDragEnd();
+    const handleMouseLeaveDrag = () => {
+      if (isDragging.current) handleDragEnd();
+    };
+
+    // Touch Events
+    const handleTouchStart = (e) => handleDragStart(e.touches[0].clientX);
+    const handleTouchMove = (e) => handleDragMove(e.touches[0].clientX);
+    const handleTouchEnd = () => handleDragEnd();
+
+    // Prevent scrolling when dragging horizontally
+    const handleTouchMovePrevent = (e) => {
+      if (isDragging.current) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - startX.current;
+        if (Math.abs(deltaX) > 10) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    // Attach Events
+    slider.addEventListener('mousedown', handleMouseDown);
+    slider.addEventListener('mousemove', handleMouseMove);
+    slider.addEventListener('mouseup', handleMouseUp);
+    slider.addEventListener('mouseleave', handleMouseLeaveDrag);
+
+    slider.addEventListener('touchstart', handleTouchStart);
+    slider.addEventListener('touchmove', handleTouchMovePrevent, { passive: false });
+    slider.addEventListener('touchmove', handleTouchMove);
+    slider.addEventListener('touchend', handleTouchEnd);
+
+    // Cleanup
+    return () => {
+      slider.removeEventListener('mousedown', handleMouseDown);
+      slider.removeEventListener('mousemove', handleMouseMove);
+      slider.removeEventListener('mouseup', handleMouseUp);
+      slider.removeEventListener('mouseleave', handleMouseLeaveDrag);
+
+      slider.removeEventListener('touchstart', handleTouchStart);
+      slider.removeEventListener('touchmove', handleTouchMovePrevent);
+      slider.removeEventListener('touchmove', handleTouchMove);
+      slider.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [drag, moveSlides, slidesShown, slidesScrolled, currentIndex]);
+
   return (
     <div className="relative w-full" ref={sliderRef}>
       {/* Slider Track */}
@@ -269,7 +395,7 @@ function Slider({
 
       {/* Indicators */}
       {slideDots && totalItems > slidesShown && (
-        <div className="mt-2 flex justify-center w-full">
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex">
           {indicators}
         </div>
       )}
@@ -326,6 +452,7 @@ Slider.propTypes = {
   slideDirection: PropTypes.oneOf(['left', 'right']),
   slideDots: PropTypes.bool,
   infinite: PropTypes.bool, // Controls autoplay looping
+  drag: PropTypes.bool, // New prop for enabling drag
   ItemComponent: PropTypes.func,
 };
 

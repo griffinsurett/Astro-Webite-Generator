@@ -45,13 +45,14 @@ import Slider from '~/components/Slider/Slider.astro';
     <ContentTemplate collection="testimonials">
       <Slider
       queryName={"FeaturedTestimonials"}
-      autoplay={true}
+      autoplay={false}
       autoplaySpeed={3000}
       infinite={true}
       slidesShown={1}
       slidesScrolled={1}
       sideArrows={true}
       slideDots={true}
+      drag = {true}
     />
     </ContentTemplate>
   </Section>

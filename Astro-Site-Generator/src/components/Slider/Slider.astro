@@ -14,6 +14,7 @@ const {
   slideDirection = "left",
   slideDots = true,
   infinite = false,
+  drag = false,
   ItemComponent,
   ...rest
 } = Astro.props;
@@ -38,5 +39,6 @@ const items = await executeQuery(queryName, rest);
     slideDots={slideDots}
     infinite={infinite}
     ItemComponent={ItemComponent}
+    drag={drag}
   />
 )}
