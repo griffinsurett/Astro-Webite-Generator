@@ -269,7 +269,7 @@ function Slider({
 
       {/* Indicators */}
       {slideDots && totalItems > slidesShown && (
-        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex">
+        <div className="mt-2 flex justify-center w-full">
           {indicators}
         </div>
       )}

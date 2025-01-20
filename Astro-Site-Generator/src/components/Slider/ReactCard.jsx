@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 const ReactCard = React.memo(function ReactCard({ title, description, slug, featuredImage, icon }) {
   return (
-    <div className="w-full p-4 border border-gray-200 rounded shadow-sm hover:shadow-md transition-shadow duration-200 bg-white box-border">
+    <div className="w-full p-4 border border-gray-200 rounded shadow-sm hover:shadow-md transition-shadow duration-200 bg-white box-border flex justify-center items-center flex-col text-center">
       {featuredImage ? (
         <img
           src={featuredImage}
