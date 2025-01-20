@@ -4,8 +4,8 @@ import PropTypes from 'prop-types';
 import ReactCard from './ReactCard';
 
 /**
- * A lightweight React-based carousel/slider component with optional infinite looping.
- * Implements cloned slides for seamless infinite looping.
+ * A lightweight React-based carousel/slider component with optional infinite autoplay.
+ * Implements cloned slides for seamless infinite looping via arrows.
  * 
  * Props:
  * - items: array of data to display (each item will render inside `ItemComponent`).
@@ -16,7 +16,7 @@ import ReactCard from './ReactCard';
  * - sideArrows: boolean (render next/prev arrows)
  * - slideDirection: string ('left' or 'right') - direction to auto-slide
  * - slideDots: boolean (render indicators/dots)
- * - infinite: boolean (enable infinite looping)
+ * - infinite: boolean (enable infinite autoplay looping)
  * - ItemComponent: a React component to render each item (similar to your ItemsTemplate usage)
  */
 function Slider({
@@ -28,31 +28,48 @@ function Slider({
   sideArrows = true,
   slideDirection = 'left',
   slideDots = false,
-  infinite = false, // New prop
+  infinite = false, // Controls autoplay looping
   ItemComponent = ReactCard,
 }) {
-  const [currentIndex, setCurrentIndex] = useState(infinite ? slidesShown : 0);
+  // Initialize currentIndex to account for cloned slides at the start
+  const [currentIndex, setCurrentIndex] = useState(slidesShown);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [canAutoplay, setCanAutoplay] = useState(true); // Controls autoplay progression
   const trackRef = useRef(null);
   const intervalRef = useRef(null);
   const sliderRef = useRef(null);
 
   const totalItems = items.length;
 
-  // Create cloned slides
-  const clonedStart = infinite ? items.slice(-slidesShown) : [];
-  const clonedEnd = infinite ? items.slice(0, slidesShown) : [];
+  // Create cloned slides for infinite toggling via arrows
+  const clonedStart = slidesShown > 0 ? items.slice(-slidesShown) : [];
+  const clonedEnd = slidesShown > 0 ? items.slice(0, slidesShown) : [];
   const extendedItems = [...clonedStart, ...items, ...clonedEnd];
-
   const extendedTotal = extendedItems.length;
 
-  // Calculate maxIndex based on infinite prop
-  const maxIndex = infinite ? totalItems + slidesShown : totalItems - slidesShown;
+  // Calculate maxIndex based on original items
+  const maxIndex = slidesShown + totalItems;
+
+  /**
+   * Helper function to reset transition and transform seamlessly.
+   */
+  const resetTransition = (newIndex) => {
+    setCurrentIndex(newIndex);
+    trackRef.current.style.transition = 'none';
+    trackRef.current.style.transform = `translateX(-${newIndex * (100 / slidesShown)}%)`;
+    // Force reflow to apply the transform without transition
+    void trackRef.current.offsetWidth;
+    // Re-enable transition
+    setTimeout(() => {
+      trackRef.current.style.transition = 'transform 0.3s ease-in-out';
+    }, 0);
+  };
 
   /**
    * moveSlides:
    * Moves the slider in the specified direction.
-   * Handles infinite looping by updating currentIndex accordingly.
+   * Allows infinite wrapping via arrows, regardless of the `infinite` prop.
+   * For autoplay, prevents moving beyond the last slide if `infinite=false`.
    */
   const moveSlides = useCallback((direction) => {
     if (isTransitioning || totalItems === 0) return; // Prevent action during transition or if no items
@@ -60,35 +77,38 @@ function Slider({
     let newIndex = currentIndex;
 
     if (direction === 'left') {
-      newIndex += slidesScrolled;
-      if (newIndex > maxIndex) {
-        if (infinite) {
-          newIndex = newIndex + slidesScrolled;
-        } else {
-          newIndex = maxIndex;
-        }
+      // Moving to next slides
+      if (!infinite && newIndex + slidesScrolled > slidesShown + totalItems - 1) {
+        // If finite autoplay and attempting to move beyond the last slide, clamp to last slide
+        newIndex = slidesShown + totalItems - 1;
+        setCanAutoplay(false);
+        clearInterval(intervalRef.current);
+      } else {
+        newIndex += slidesScrolled;
       }
     } else if (direction === 'right') {
-      newIndex -= slidesScrolled;
-      if (newIndex < slidesShown) {
-        if (infinite) {
-          newIndex = newIndex - slidesScrolled;
-        } else {
-          newIndex = slidesShown;
-        }
+      // Moving to previous slides
+      if (!infinite && newIndex - slidesScrolled < slidesShown) {
+        // If finite autoplay and attempting to move before the first slide, clamp to first slide
+        newIndex = slidesShown;
+      } else {
+        newIndex -= slidesScrolled;
       }
     }
 
     setCurrentIndex(newIndex);
     setIsTransitioning(true);
-  }, [currentIndex, isTransitioning, slidesScrolled, infinite, totalItems, maxIndex, slidesShown]);
+  }, [currentIndex, isTransitioning, slidesScrolled, infinite, slidesShown, totalItems]);
 
   /**
    * Autoplay effect:
    * Automatically moves slides based on autoplay settings.
+   * Respects the `infinite` prop to determine looping behavior.
    */
   useEffect(() => {
     if (!autoplay || totalItems <= slidesShown) return;
+
+    if (!infinite && !canAutoplay) return; // Do not autoplay if finite and already stopped
 
     const direction = slideDirection === 'right' ? 'right' : 'left';
 
@@ -97,38 +117,33 @@ function Slider({
     }, autoplaySpeed);
 
     return () => clearInterval(intervalRef.current);
-  }, [autoplay, autoplaySpeed, slidesShown, slideDirection, moveSlides, totalItems]);
+  }, [autoplay, autoplaySpeed, slidesShown, slideDirection, moveSlides, totalItems, infinite, canAutoplay]);
 
   /**
-   * Handle transition end:
-   * Resets the transitioning state and handles the infinite loop by resetting the currentIndex without transition.
+   * handleTransitionEnd:
+   * Resets the transitioning state and handles index resetting for seamless looping via arrows.
+   * Also handles stopping autoplay if `infinite=false` and the end is reached.
    */
   const handleTransitionEnd = () => {
     setIsTransitioning(false);
 
     if (infinite) {
-      if (currentIndex >= totalItems + slidesShown) {
-        // If we've moved past the last original slide, reset to the first original slide
-        setCurrentIndex(slidesShown);
-        // Temporarily disable transition to make the jump seamless
-        trackRef.current.style.transition = 'none';
-        trackRef.current.style.transform = `translateX(-${slidesShown * (100 / slidesShown)}%)`;
-        // Force reflow to apply the transform without transition
-        void trackRef.current.offsetWidth;
-        // Re-enable transition
-        setTimeout(() => {
-          trackRef.current.style.transition = 'transform 0.3s ease-in-out';
-        }, 0);
+      if (currentIndex >= maxIndex) {
+        // Reached end clone, reset to original start
+        resetTransition(slidesShown);
       } else if (currentIndex < slidesShown) {
-        // If we've moved before the first original slide, reset to the last original slide
-        setCurrentIndex(totalItems + slidesShown - slidesScrolled);
-        trackRef.current.style.transition = 'none';
-        trackRef.current.style.transform = `translateX(-${(totalItems + slidesShown - slidesScrolled) * (100 / slidesShown)}%)`;
-        void trackRef.current.offsetWidth;
-        setTimeout(() => {
-          trackRef.current.style.transition = 'transform 0.3s ease-in-out';
-        }, 0);
+        // Reached start clone, reset to original end
+        resetTransition(totalItems + slidesShown - slidesScrolled);
       }
+    } else {
+      if (currentIndex >= slidesShown + totalItems - 1) {
+        // Reached the last original slide
+        // Stop autoplay and clamp to last slide
+        setCanAutoplay(false);
+        clearInterval(intervalRef.current);
+        resetTransition(slidesShown + totalItems - 1);
+      }
+      // No action needed if not reached the end
     }
   };
 
@@ -137,11 +152,11 @@ function Slider({
    * Translates the slider to show the current slides.
    */
   useEffect(() => {
-    if (trackRef.current) {
+    if (trackRef.current && isTransitioning) {
       const translateX = -(currentIndex * (100 / slidesShown));
       trackRef.current.style.transform = `translateX(${translateX}%)`;
     }
-  }, [currentIndex, slidesShown]);
+  }, [currentIndex, slidesShown, isTransitioning]);
 
   /**
    * Cleanup on unmount:
@@ -165,7 +180,7 @@ function Slider({
     };
 
     const handleMouseLeave = () => {
-      if (autoplay && totalItems > slidesShown) {
+      if (autoplay && totalItems > slidesShown && (infinite || canAutoplay)) {
         const direction = slideDirection === 'right' ? 'right' : 'left';
         intervalRef.current = setInterval(() => {
           moveSlides(direction);
@@ -184,7 +199,7 @@ function Slider({
         slider.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [autoplay, autoplaySpeed, moveSlides, slideDirection, slidesShown, totalItems]);
+  }, [autoplay, autoplaySpeed, moveSlides, slideDirection, slidesShown, totalItems, infinite, canAutoplay]);
 
   /**
    * Keyboard navigation:
@@ -210,8 +225,7 @@ function Slider({
    */
   const indicators = [];
   if (slideDots) {
-    const totalIndicators = infinite ? totalItems : maxIndex + 1;
-
+    const totalIndicators = infinite ? totalItems : Math.ceil(totalItems / slidesScrolled);
     for (let i = 0; i < totalIndicators; i++) {
       indicators.push(
         <button
@@ -235,11 +249,11 @@ function Slider({
       <div className="overflow-hidden w-full">
         <div
           className="flex transition-transform duration-300 ease-in-out"
+          ref={trackRef}
+          onTransitionEnd={handleTransitionEnd}
           style={{
             transform: `translateX(-${currentIndex * (100 / slidesShown)}%)`,
           }}
-          ref={trackRef}
-          onTransitionEnd={handleTransitionEnd}
         >
           {extendedItems.map((item, index) => (
             <div
@@ -272,10 +286,10 @@ function Slider({
               bg-white border border-gray-300 
               rounded-full p-2 shadow 
               hover:bg-gray-100 focus:outline-none
+              focus:ring-2 focus:ring-gray-400
             "
             onClick={() => moveSlides('right')} // Move to previous slides
             aria-label="Previous Slide"
-            disabled={!infinite && currentIndex === slidesShown} // Disable if not infinite and at first slide
           >
             &larr;
           </button>
@@ -289,10 +303,10 @@ function Slider({
               bg-white border border-gray-300 
               rounded-full p-2 shadow 
               hover:bg-gray-100 focus:outline-none
+              focus:ring-2 focus:ring-gray-400
             "
             onClick={() => moveSlides('left')} // Move to next slides
             aria-label="Next Slide"
-            disabled={!infinite && currentIndex >= maxIndex + slidesShown} // Disable if not infinite and at last slide
           >
             &rarr;
           </button>
@@ -311,7 +325,7 @@ Slider.propTypes = {
   sideArrows: PropTypes.bool,
   slideDirection: PropTypes.oneOf(['left', 'right']),
   slideDots: PropTypes.bool,
-  infinite: PropTypes.bool, // New prop type
+  infinite: PropTypes.bool, // Controls autoplay looping
   ItemComponent: PropTypes.func,
 };
 

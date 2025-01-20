@@ -1,8 +1,9 @@
 ---
 import { executeQuery } from "../../utils/queries/executeQuery.js";
 import ReactSlider from "./Slider.jsx";
+import CollectionsCard from "../CollectionsCard.astro";
 
-// Destructure props for the slider
+// Destructure props
 const {
   queryName,
   autoplay = true,
@@ -10,28 +11,32 @@ const {
   slidesShown = 1,
   slidesScrolled = 1,
   sideArrows = true,
-  slideDirection = 'left', // Default direction
-  slideDots = true, // Default to false
-  infinite = false, // New prop with default value
-  ItemComponent, 
+  slideDirection = "left",
+  slideDots = true,
+  infinite = false,
+  ItemComponent,
   ...rest
 } = Astro.props;
-    
-// 1) Fetch items using your dynamic queries system
-//    Pass any extra props (in rest) if your query needs them
+
+// Fetch items using your dynamic queries system
 const items = await executeQuery(queryName, rest);
 ---
-    
-<ReactSlider
-  client:load
-  items={items}
-  autoplay={autoplay}
-  autoplaySpeed={autoplaySpeed}
-  slidesShown={slidesShown}
-  slidesScrolled={slidesScrolled}
-  sideArrows={sideArrows}
-  slideDirection={slideDirection} 
-  slideDots={slideDots} 
-  infinite={infinite}
-  ItemComponent={ItemComponent}
-/>
+{items.length === 1 ? (
+  // Render fallback for a single item
+  <CollectionsCard {...items[0]} />
+) : (
+  // Render the slider for multiple items
+  <ReactSlider
+    client:load
+    items={items}
+    autoplay={autoplay}
+    autoplaySpeed={autoplaySpeed}
+    slidesShown={slidesShown}
+    slidesScrolled={slidesScrolled}
+    sideArrows={sideArrows}
+    slideDirection={slideDirection}
+    slideDots={slideDots}
+    infinite={infinite}
+    ItemComponent={ItemComponent}
+  />
+)}
