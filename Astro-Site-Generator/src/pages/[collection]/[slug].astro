@@ -7,25 +7,30 @@ import ItemsTemplate from "../../components/ItemsTemplate.astro";
 import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 
-import { generateItemPaths } from "../../utils/collections/collectionPaths.js";
-import { handleTwoSegmentRedirect } from "../../utils/redirects/handleRedirects.js";
+import { handleTwoSegmentRedirect } from "../../utils/redirects";
+import { generateTwoSegmentPaths } from "../../utils/redirects/generatePaths";
 import { getCollectionItemPageData } from "../../utils/collections/";
 
 const { collection, slug } = Astro.params;
 
+// 1. Generate Static Paths
 export async function getStaticPaths() {
-  return await generateItemPaths();
+  return await generateTwoSegmentPaths();
 }
 
+// 2. Handle Redirects
 const redirectTo = handleTwoSegmentRedirect(collection, slug);
 if (redirectTo) {
+  console.log(`Redirecting /${collection}/${slug} to ${redirectTo}`);
   return Astro.redirect(redirectTo);
 }
 
+// 3. Fetch Page Data
 let pageData;
 try {
   pageData = await getCollectionItemPageData(collection, slug);
 } catch (error) {
+  console.error(`Error fetching page data for /${collection}/${slug}:`, error);
   return Astro.redirect("/404");
 }
 
@@ -107,12 +112,13 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     </ContentTemplate>
   </Section>
 
+  <!-- Related Projects -->
   <Section class="mt-12">
     <ContentTemplate collection="projects">
       <ItemsTemplate
         collection="projects"
         ItemComponent={CollectionCard}
-        queryName="RelatedProjects"
+        queryName={`RelatedProjects`}
         slug={slug}
         currentCollection={collection}
         columns={2}
@@ -120,12 +126,13 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     </ContentTemplate>
   </Section>
 
+  <!-- Related Testimonials -->
   <Section class="mt-12">
     <ContentTemplate collection="testimonials">
       <ItemsTemplate
         collection="testimonials"
         ItemComponent={CollectionCard}
-        queryName="RelatedTestimonials"
+        queryName={`RelatedTestimonials`}
         slug={slug}
         currentCollection={collection}
         columns={2}
