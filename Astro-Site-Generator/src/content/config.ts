@@ -237,6 +237,7 @@ const testimonials = defineCollection({
       icon: '💬',
       featuredImage: '/assets/background.svg',
       projects: ['project-beta'],
+      // hasPage: true,
     },
   ],
 });
