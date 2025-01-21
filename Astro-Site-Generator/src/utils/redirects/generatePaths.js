@@ -1,11 +1,9 @@
 // src/utils/redirects/generatePaths.js
-
 import { collections } from "../../content/config";
 import { getAvailableCollections } from "../collections";
 
 /**
  * Generates all static paths for two-segment routes, including redirects.
- * Considers `hasPage` and `itemsHasPage` flags.
  * Handles both collection-level and slug-level redirects.
  * @returns {Array<{ params: { collection: string, slug: string } }>}
  */
@@ -13,21 +11,14 @@ export async function generateTwoSegmentPaths() {
   const paths = [];
 
   for (const colName of getAvailableCollections()) {
-    const collection = collections[colName];
-    const items = collection.data;
+    const items = collections[colName].data;
 
-    // Determine if items should have pages by default
-    const itemsHavePages = collection.metadata.itemsHasPage;
-
-    // Add actual item paths based on `itemsHasPage` and individual `item.hasPage`
+    // Add actual item paths and their slug-level redirects
     for (const item of items) {
-      const itemHasPage = item.hasPage ?? itemsHavePages;
+      // Actual item path: /services/seo-optimization
+      paths.push({ params: { collection: colName, slug: item.slug } });
 
-      if (itemHasPage) {
-        paths.push({ params: { collection: colName, slug: item.slug } });
-      }
-
-      // Add slug-level redirects regardless of `hasPage`
+      // Slug-level redirects: /services/seo → /services/seo-optimization
       if (item.redirectFrom && item.redirectFrom.length) {
         for (const rSlug of item.redirectFrom) {
           paths.push({ params: { collection: colName, slug: rSlug } });
@@ -35,20 +26,17 @@ export async function generateTwoSegmentPaths() {
       }
     }
 
-    // Add collection-level redirects regardless of `hasPage`
-    if (collection.metadata.redirectFrom) {
-      for (const rFrom of collection.metadata.redirectFrom) {
+    // Add collection-level redirects and their associated slug-level redirects
+    if (collections[colName].metadata.redirectFrom) {
+      for (const rFrom of collections[colName].metadata.redirectFrom) {
         for (const item of items) {
-          const itemHasPage = item.hasPage ?? itemsHavePages;
+          // Always add the actual slug for collection-level redirects
+          paths.push({ params: { collection: rFrom, slug: item.slug } });
 
-          if (itemHasPage) {
-            // Add paths like /service/web-development
-            paths.push({ params: { collection: rFrom, slug: item.slug } });
-          }
-
-          // Add slug-level redirects under the collection alias regardless of `hasPage`
+          // Additionally, add the redirect slugs if they exist
           if (item.redirectFrom && item.redirectFrom.length) {
             for (const rSlug of item.redirectFrom) {
+              // Combined redirect: /service/seo → /services/seo-optimization
               paths.push({ params: { collection: rFrom, slug: rSlug } });
             }
           }
@@ -57,41 +45,31 @@ export async function generateTwoSegmentPaths() {
     }
   }
 
-  // Deduplicate paths to prevent duplicates
-  const uniquePathsSet = new Set(paths.map((p) => `${p.params.collection}/${p.params.slug}`));
-  const uniquePaths = Array.from(uniquePathsSet).map((path) => {
+  // Deduplicate paths
+  const uniquePaths = Array.from(
+    new Set(paths.map((p) => `${p.params.collection}/${p.params.slug}`))
+  ).map((path) => {
     const [collection, slug] = path.split("/");
     return { params: { collection, slug } };
   });
 
-  console.log(`Generated ${uniquePaths.length} two-segment paths.`);
   return uniquePaths;
 }
 
 /**
  * Generates all static paths for single-segment routes, including redirects.
- * Considers `hasPage` flags where applicable.
  * @returns {Array<{ params: { slug: string } }>}
  */
 export async function generateSingleSegmentPaths() {
   const paths = [];
 
   for (const colName of getAvailableCollections()) {
-    const collection = collections[colName];
-    const items = collection.data;
+    const items = collections[colName].data;
 
-    // Determine if items should have pages by default
-    const itemsHavePages = collection.metadata.itemsHasPage;
-
-    // Add actual item slugs based on `itemsHasPage` and individual `item.hasPage`
+    // Add actual item slugs and their redirects
     for (const item of items) {
-      const itemHasPage = item.hasPage ?? itemsHavePages;
+      paths.push({ params: { slug: item.slug } });
 
-      if (itemHasPage) {
-        paths.push({ params: { slug: item.slug } });
-      }
-
-      // Add slug-level redirects regardless of `hasPage`
       if (item.redirectFrom && item.redirectFrom.length) {
         for (const rSlug of item.redirectFrom) {
           paths.push({ params: { slug: rSlug } });
@@ -99,18 +77,15 @@ export async function generateSingleSegmentPaths() {
       }
     }
 
-    // Add collection-level redirects regardless of `hasPage`
-    if (collection.metadata.redirectFrom) {
-      for (const rFrom of collection.metadata.redirectFrom) {
+    // Add collection-level redirects
+    if (collections[colName].metadata.redirectFrom) {
+      for (const rFrom of collections[colName].metadata.redirectFrom) {
         paths.push({ params: { slug: rFrom } });
       }
     }
   }
 
   // Deduplicate slugs
-  const uniqueSlugsSet = new Set(paths.map((p) => p.params.slug));
-  const uniqueSlugs = Array.from(uniqueSlugsSet).map((slug) => ({ params: { slug } }));
-
-  console.log(`Generated ${uniqueSlugs.length} single-segment paths.`);
-  return uniqueSlugs;
+  const uniqueSlugs = Array.from(new Set(paths.map((p) => p.params.slug)));
+  return uniqueSlugs.map((slug) => ({ params: { slug } }));
 }
