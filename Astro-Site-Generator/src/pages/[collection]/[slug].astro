@@ -1,141 +1,67 @@
 ---
 import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
 import Section from "../../components/Section.astro";
-import Image from "../../components/Image.astro";
 import ContentTemplate from "../../components/ContentTemplate.astro";
 import ItemsTemplate from "../../components/ItemsTemplate.astro";
-import CollectionCard from "../../components/CollectionsCard.astro";
+import CollectionsCard from "../../components/CollectionsCard.astro";
 
-import { handleTwoSegmentRedirect } from "../../utils/redirects";
-import { generateTwoSegmentPaths } from "../../utils/redirects/generatePaths";
-import { getCollectionItemPageData } from "../../utils/collections/";
+import { generateTwoSegmentPaths, handleTwoSegmentRedirect } from "../../utils/redirects";
+import { getCollectionItemPageData } from "../../utils/collections";
+import { getItemSections } from "../../utils/sections.js";
 
 const { collection, slug } = Astro.params;
 
-// 1. Generate Static Paths
+/** Build static paths for each item that hasPage = true, plus any redirects. */
 export async function getStaticPaths() {
   return await generateTwoSegmentPaths();
 }
 
-// 2. Handle Redirects
+// 1) Check if route is a redirect
 const redirectTo = handleTwoSegmentRedirect(collection, slug);
 if (redirectTo) {
-  console.log(`Redirecting /${collection}/${slug} to ${redirectTo}`);
   return Astro.redirect(redirectTo);
 }
 
-// 3. Fetch Page Data
+// 2) Fetch data about this specific item
 let pageData;
 try {
   pageData = await getCollectionItemPageData(collection, slug);
-} catch (error) {
-  console.error(`Error fetching page data for /${collection}/${slug}:`, error);
+} catch (err) {
+  console.error(err);
   return Astro.redirect("/404");
 }
 
+// 3) Extract fields (title, description, featuredImage, etc.)
 const { title, description, icon, featuredImage, pageTitle } = pageData;
+
+// 4) Retrieve any “sections” stored at the item level (item.sections).
+const itemSections = getItemSections(collection, slug);
 ---
 <CollectionItemLayout
   title={pageTitle}
   description={description}
   image={featuredImage}
 >
+  <!-- Main “hero” or overview for this specific item -->
   <Section>
-    <article>
-      <header>
-        <h1 class="text-xl font-bold mb-2">
-          {icon || "📄"} {title}
-        </h1>
-        <p class="text-gray-666">{description}</p>
-        {featuredImage && (
-          <Image
-            src={featuredImage}
-            alt={`${title} Featured Image`}
-            className="mt-4 rounded"
-          />
-        )}
-      </header>
-      <p class="mt-4">Additional item-specific content goes here...</p>
-    </article>
+    <h1>{icon || "📄"} {title}</h1>
+    <p>{description}</p>
   </Section>
 
-  <Section class="mt-12">
-    <ContentTemplate collection="services">
-      <ItemsTemplate
-        collection="services"
-        ItemComponent={CollectionCard}
-        queryName="ParentServices"
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
-
-  <Section class="mt-12">
-    <ContentTemplate collection="services">
-      <ItemsTemplate
-        collection="services"
-        ItemComponent={CollectionCard}
-        queryName="ChildrenServices"
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
-
-  <Section class="mt-12">
-    <ContentTemplate collection="services">
-      <ItemsTemplate
-        collection="services"
-        ItemComponent={CollectionCard}
-        queryName="SiblingServices"
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
-
-  <Section class="mt-12">
-    <ContentTemplate collection="services">
-      <ItemsTemplate
-        collection="services"
-        ItemComponent={CollectionCard}
-        queryName="RelatedServices"
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
-
-  <!-- Related Projects -->
-  <Section class="mt-12">
-    <ContentTemplate collection="projects">
-      <ItemsTemplate
-        collection="projects"
-        ItemComponent={CollectionCard}
-        queryName={`RelatedProjects`}
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
-
-  <!-- Related Testimonials -->
-  <Section class="mt-12">
-    <ContentTemplate collection="testimonials">
-      <ItemsTemplate
-        collection="testimonials"
-        ItemComponent={CollectionCard}
-        queryName={`RelatedTestimonials`}
-        slug={slug}
-        currentCollection={collection}
-        columns={2}
-      />
-    </ContentTemplate>
-  </Section>
+  <!-- Loop through the item-level sections for /[collection]/[slug] -->
+  {itemSections.map((sec) => (
+    <Section>
+      <ContentTemplate collection={sec.collection}>
+        <ItemsTemplate
+          collection={sec.collection}
+          queryName={sec.queryName}
+          ItemComponent={CollectionsCard}
+          slug={slug}
+          currentCollection={collection}
+          columns={3}
+          gap="1.5rem"
+        />
+      </ContentTemplate>
+    </Section>
+  ))}
 </CollectionItemLayout>

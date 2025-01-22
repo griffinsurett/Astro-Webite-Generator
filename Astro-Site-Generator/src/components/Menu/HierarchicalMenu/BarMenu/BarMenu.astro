@@ -7,7 +7,16 @@ const { queryName, className = "" } = Astro.props;
 ---
 <ul class={`flex gap-4 m-0 p-0 list-none ${className}`} role="menubar">
   {queryName.map((item) => (
-    <li class="menu-item relative cursor-pointer hover:bg-gray-f0" role="none">
+    <li
+      class="
+        menu-item
+        relative
+        cursor-pointer
+        hover:bg-gray-f0
+        group /* Tailwind group for hover/focus submenus */
+      "
+      role="none"
+    >
       <MenuItem
         label={item.label}
         href={item.href}
@@ -17,6 +26,7 @@ const { queryName, className = "" } = Astro.props;
       {item.children && item.children.length > 0 && (
         <>
           <Arrow />
+          {/* The top-level sub-menu is depth=0 by default */}
           <SubMenu items={item.children} />
         </>
       )}

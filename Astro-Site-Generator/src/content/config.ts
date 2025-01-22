@@ -5,6 +5,12 @@ import { defineCollection, z } from 'astro:content';
  * Now includes optional `addToQuery` so single items can also specify
  * how they appear in e.g. NavMenu.
  * ------------------------------------------------------------------ */
+// 1) Define a Section schema
+const sectionSchema = z.object({
+  collection: z.string(),
+  queryName: z.string(),
+});
+
 const addToQueryItemSchema = z.object({
   name: z.string(),                        // The query name, e.g., "NavMenu"
   queryItemText: z.string().optional(),    // Which field to use as the menu label (e.g. "title")
@@ -25,6 +31,7 @@ const baseSchema = z.object({
   parent: z.array(z.string()).optional(), 
   // NEW: For single-item “add to query” definitions
   addToQuery: z.array(addToQueryItemSchema).optional(),
+  sections: z.array(sectionSchema).optional(),
 });
 
 /** ------------------------------------------------------------------
@@ -50,6 +57,8 @@ const collectionMetadataSchema = z.object({
   isHierarchical: z.boolean().optional(),
   // We can have multiple queries defined here too
   addToQuery: z.array(collectionMetadataQuerySchema).optional(),
+  sections: z.array(sectionSchema).optional(),
+  itemsSections: z.array(sectionSchema).optional(),
 });
 
 /* ------------------------------------------------------------------
@@ -77,6 +86,11 @@ const services = defineCollection({
         addHierarchyToQuery: true, 
       },
     ],
+    sections: [
+      { collection: "services", queryName: "AllItemsServices" },
+      { collection: "projects", queryName: "RelatedProjects" },
+      { collection: "testimonials", queryName: "RelatedTestimonials" },
+    ],    
   }),
   data: [
     {
@@ -86,7 +100,12 @@ const services = defineCollection({
       description: 'Launch modern websites with design and dev included.',
       icon: '🌐',
       featuredImage: '/assets/background.svg',
-      // No parent → top-level
+      sections: [
+        { collection: "services", queryName: "RelatedServices" },
+        { collection: "services", queryName: "AllItemsServices" },
+        { collection: "projects", queryName: "RelatedProjects" },
+        { collection: "testimonials", queryName: "RelatedTestimonials" },
+      ],  
     },
     // Child of Website Creation
     {
@@ -111,6 +130,10 @@ const services = defineCollection({
       featured: true,
       redirectFrom: ['web-dev', 'development'],
       parent: 'website-creation',
+      sections: [
+        { collection: "services", queryName: "AllItemsServices" },
+        { collection: "projects", queryName: "RelatedProjects" },
+      ],  
     },
     // Another top-level service
     {
@@ -162,6 +185,11 @@ const projects = defineCollection({
         addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
       },
     ],
+    sections: [
+      { collection: "projects", queryName: "AllItemsProjects" },
+      { collection: "testimonials", queryName: "RelatedTestimonials" },
+      { collection: "services", queryName: "RelatedServices" },
+    ],  
   }),
   data: [
     {
@@ -209,7 +237,11 @@ const testimonials = defineCollection({
         addItemsToQuery: false,    // Whether to add all items from the collection into the query
         addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
       },
-    ],
+    ],  sections: [
+      { collection: "testimonials", queryName: "AllItemsTestimonials" },
+      { collection: "projects", queryName: "RelatedProjects" },
+      { collection: "services", queryName: "RelatedServices" },
+    ], 
   }),
   data: [
     {
