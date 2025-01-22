@@ -56,6 +56,7 @@ const collectionMetadataSchema = z.object({
   addToQuery: z.array(collectionMetadataQuerySchema).optional(),
   sections: z.array(sectionSchema).optional(),
   itemsSections: z.array(sectionSchema).optional(), 
+  collectionSlugInItem: z.boolean().default(true),
 });
 
 /* ------------------------------------------------------------------
@@ -75,6 +76,7 @@ const services = defineCollection({
     itemsHasPage: true,
     redirectFrom: ['service'],
     isHierarchical: true, 
+    collectionSlugInItem: false,
     addToQuery: [
       {
         name: "NavMenu",         
@@ -129,10 +131,6 @@ const services = defineCollection({
       featured: true,
       redirectFrom: ['web-dev', 'development'],
       parent: 'website-creation',
-      sections: [
-        { collection: "services", queryName: "AllItemsServices" },
-        { collection: "projects", queryName: "RelatedProjects" },
-      ],  
     },
     {
       title: 'Digital Marketing',

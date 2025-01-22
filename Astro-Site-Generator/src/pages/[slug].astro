@@ -1,25 +1,108 @@
 ---
-import { 
-  generateSingleSegmentPaths, 
-  handleSingleSegmentRedirect 
+import CollectionItemLayout from "../layouts/CollectionItemLayout.astro";
+import Section from "../components/Section.astro";
+import ContentTemplate from "../components/ContentTemplate.astro";
+import ItemsTemplate from "../components/ItemsTemplate.astro";
+import CollectionsCard from "../components/CollectionsCard.astro";
+
+import {
+  generateSingleSegmentPaths,
+  handleSingleSegmentRedirect
 } from "../utils/redirects";
 
-// 1) Define getStaticPaths using the centralized path generator
+import {
+  getCollectionItemPageData,
+  getAvailableCollections,
+} from "../utils/collections";
+
+import { getItemSections } from "../utils/sections.js";
+import { collections } from "../content/config";
+
+const { slug } = Astro.params;
+
+/**
+ * Generate all single-segment paths.
+ */
 export async function getStaticPaths() {
   return await generateSingleSegmentPaths();
 }
 
-// 2) Handle redirects using the centralized redirect handler
-const { slug } = Astro.params;
+/** 1) Check if this slug is some old “redirectFrom” or collection redirect. */
 const redirectTo = handleSingleSegmentRedirect(slug);
 if (redirectTo) {
-  return Astro.redirect(redirectTo);
+  // If handleSingleSegmentRedirect returns a string, we do a redirect.
+  // If it returns `null`, it means “go ahead and render here.”
+  if (redirectTo !== null) {
+    return Astro.redirect(redirectTo);
+  }
 }
 
-// 3) If no redirect is found, redirect to 404
-return Astro.redirect("/404");
+// 2) If redirectTo was null, we attempt to find which collection item belongs to.
+let foundCollection = null;
+let foundItem = null;
+
+/** We want to see if `slug` is in any collection. If it is, check that collection’s `collectionSlugInItem`. */
+for (const colName of getAvailableCollections()) {
+  const colObj = collections[colName];
+  const maybeItem = colObj.data.find((itm) => itm.slug === slug);
+  if (maybeItem) {
+    foundCollection = colName;
+    foundItem = maybeItem;
+    break;
+  }
+}
+
+// 3) If not found at all, 404
+if (!foundCollection || !foundItem) {
+  return Astro.redirect("/404");
+}
+
+// 4) If the item’s collection says `collectionSlugInItem === true`, we actually want /collection/slug
+const { collectionSlugInItem } = collections[foundCollection].metadata || {};
+
+if (collectionSlugInItem === true) {
+  // => redirect to the two-segment route
+  return Astro.redirect(`/${foundCollection}/${slug}`);
+}
+
+// 5) Otherwise, if we get here, collectionSlugInItem === false => show single-segment page
+//    So fetch full “pageData” and sections:
+let pageData;
+try {
+  pageData = await getCollectionItemPageData(foundCollection, slug);
+} catch (err) {
+  console.error(err);
+  return Astro.redirect("/404");
+}
+
+const { title, description, icon, featuredImage, pageTitle } = pageData;
+const itemSections = getItemSections(foundCollection, slug);
 ---
 
-<!-- 
-  No HTML is rendered. Redirects are handled above.
--->
+<CollectionItemLayout
+  title={pageTitle}
+  description={description}
+  image={featuredImage}
+>
+  <Section>
+    <h1>{icon || "📄"} {title}</h1>
+    <p>{description}</p>
+  </Section>
+
+
+  {itemSections.map((sec) => (
+    <Section>
+      <ContentTemplate collection={sec.collection}>
+        <ItemsTemplate
+          collection={sec.collection}
+          queryName={sec.queryName}
+          ItemComponent={CollectionsCard}
+          slug={slug}
+          currentCollection={foundCollection}
+          columns={3}
+          gap="1.5rem"
+        />
+      </ContentTemplate>
+    </Section>
+  ))}
+</CollectionItemLayout>

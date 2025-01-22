@@ -1,42 +1,74 @@
 // src/utils/redirects/generatePaths.js
-
-import { collections } from "../../content/config";
 import { getAvailableCollections, fetchCollectionItems } from "../collections";
+import { collections } from "../../content/config";
 
 export async function generateTwoSegmentPaths() {
   const paths = [];
 
   for (const colName of getAvailableCollections()) {
     const colObj = collections[colName];
-    
-    // IMPORTANT: fetch normalized items, so each hasPage is guaranteed set:
+    if (!colObj) continue;
+
+    const { metadata } = colObj;
+    const { collectionSlugInItem } = metadata;
+
+    // Get all normalized items
     const items = await fetchCollectionItems(colName);
 
-    // 1) Add actual item paths if item.hasPage === true
+    // 1) If collectionSlugInItem === true => real routes live at /collection/slug
+    //    so we generate the normal path if item.hasPage.
+    //    If item has item.redirectFrom, those also become two-segment aliases.
+    // 2) If collectionSlugInItem === false => /collection/slug is an alias that must redirect
+    //    to /slug. We still generate them, so Astro knows about them at build time.
+
     for (const item of items) {
+      // For each item that can have a page:
       if (item.hasPage) {
-        paths.push({ params: { collection: colName, slug: item.slug } });
+        paths.push({
+          params: {
+            collection: colName,
+            slug: item.slug,
+          },
+        });
       }
 
-      // 2) Add item-level redirect slugs
+      // Also handle item-level `redirectFrom` for two-segment paths
+      // if it’s relevant to this route style. We generally include them so
+      // /collection/old-slug => /collection/new-slug or maybe /slug if false
       if (item.redirectFrom && item.redirectFrom.length) {
         for (const rSlug of item.redirectFrom) {
-          paths.push({ params: { collection: colName, slug: rSlug } });
+          paths.push({
+            params: {
+              collection: colName,
+              slug: rSlug,
+            },
+          });
         }
       }
     }
 
-    // 3) Add collection-level redirects, ignoring itemsHasPage
-    if (colObj.metadata.redirectFrom) {
-      for (const rFrom of colObj.metadata.redirectFrom) {
-        // If the item has a page, we create the alias route, plus any item redirect slugs
+    // 3) Add collection-level `redirectFrom` for two-segment paths
+    //    (this is less common, but we keep the same logic).
+    if (metadata.redirectFrom) {
+      for (const rFrom of metadata.redirectFrom) {
+        // For each item that can have a page:
         for (const item of items) {
           if (item.hasPage) {
-            paths.push({ params: { collection: rFrom, slug: item.slug } });
+            paths.push({
+              params: {
+                collection: rFrom,
+                slug: item.slug,
+              },
+            });
           }
-          if (item.redirectFrom && item.redirectFrom.length) {
+          if (item.redirectFrom) {
             for (const rSlug of item.redirectFrom) {
-              paths.push({ params: { collection: rFrom, slug: rSlug } });
+              paths.push({
+                params: {
+                  collection: rFrom,
+                  slug: rSlug,
+                },
+              });
             }
           }
         }
@@ -45,8 +77,9 @@ export async function generateTwoSegmentPaths() {
   }
 
   // Deduplicate
-  const uniquePathsSet = new Set(paths.map(p => `${p.params.collection}/${p.params.slug}`));
-  const uniquePaths = [...uniquePathsSet].map(path => {
+  const uniquePaths = Array.from(
+    new Set(paths.map((p) => `${p.params.collection}/${p.params.slug}`))
+  ).map((path) => {
     const [collection, slug] = path.split("/");
     return { params: { collection, slug } };
   });
@@ -60,16 +93,24 @@ export async function generateSingleSegmentPaths() {
 
   for (const colName of getAvailableCollections()) {
     const colObj = collections[colName];
+    if (!colObj) continue;
 
-    // Again, fetch items so each item has a final hasPage
+    const { metadata } = colObj;
+    const { collectionSlugInItem } = metadata;
+
+    // fetch normalized items
     const items = await fetchCollectionItems(colName);
 
-    // 1) If item.hasPage, we add /[slug]
     for (const item of items) {
+      // If this collection’s items are set to appear at /slug,
+      // then we generate official single-segment routes if item.hasPage.
+      // Otherwise, if they appear at /collection/slug, any single-segment path
+      // might be a redirect alias (depending on your design).
       if (item.hasPage) {
         paths.push({ params: { slug: item.slug } });
       }
-      // 2) Add item redirect slugs
+
+      // item-level redirectFrom
       if (item.redirectFrom && item.redirectFrom.length) {
         for (const rSlug of item.redirectFrom) {
           paths.push({ params: { slug: rSlug } });
@@ -77,17 +118,18 @@ export async function generateSingleSegmentPaths() {
       }
     }
 
-    // 3) Add collection-level redirect slugs
-    if (colObj.metadata.redirectFrom) {
-      for (const rFrom of colObj.metadata.redirectFrom) {
+    // Also handle collection-level redirectFrom => /slug
+    if (metadata.redirectFrom) {
+      for (const rFrom of metadata.redirectFrom) {
         paths.push({ params: { slug: rFrom } });
       }
     }
   }
 
   // Deduplicate
-  const uniqueSlugsSet = new Set(paths.map(p => p.params.slug));
-  const uniqueSlugs = [...uniqueSlugsSet].map(slug => ({ params: { slug } }));
+  const uniqueSlugs = Array.from(new Set(paths.map((p) => p.params.slug))).map(
+    (slug) => ({ params: { slug } })
+  );
 
   console.log(`Generated ${uniqueSlugs.length} single-segment paths.`);
   return uniqueSlugs;
