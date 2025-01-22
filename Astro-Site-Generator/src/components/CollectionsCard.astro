@@ -3,41 +3,50 @@ const { title, description, slug, icon, featuredImage, collection, hasPage } = A
 
 console.log(`Rendering CollectionsCard for "${title}" with hasPage=${hasPage}`);
 ---
-<article
-  class="
-    border border-gray-ea p-4 rounded-lg
-    transition-shadow duration-200
-    hover:shadow-lg-custom
-  "
->
-  <h2 class="mb-2 flex items-center">
-    {icon || '📄'}
-    {hasPage ? (
-      <a href={`/${collection}/${slug}`} class="text-inherit no-underline ml-2">
-        {title}
-      </a>
-    ) : (
-      <span class="text-inherit ml-2">{title}</span>
-    )}
-  </h2>
-  
-  {hasPage ? (
-    <a href={`/${collection}/${slug}`}>
+{hasPage ? (
+  <a href={`/${collection}/${slug}`} class="no-underline text-inherit">
+    <article
+      class="
+        border border-gray-ea p-4 rounded-lg
+        transition-shadow duration-200
+        hover:shadow-lg-custom
+      "
+    >
+      <h2 class="mb-2 flex items-center">
+        {icon || '📄'}
+        <span class="ml-2">{title}</span>
+      </h2>
+      
       <img
         src={featuredImage}
         alt={`${title} Featured Image`}
         class="max-w-full h-auto rounded mb-4 cursor-pointer hover:opacity-90 transition-opacity duration-200"
         loading="lazy"
       />
-    </a>
-  ) : (
+      
+      <p class="m-0">{description}</p>
+    </article>
+  </a>
+) : (
+  <article
+    class="
+      border border-gray-ea p-4 rounded-lg
+      transition-shadow duration-200
+      hover:shadow-lg-custom
+    "
+  >
+    <h2 class="mb-2 flex items-center">
+      {icon || '📄'}
+      <span class="text-inherit ml-2">{title}</span>
+    </h2>
+    
     <img
       src={featuredImage}
       alt={`${title} Featured Image`}
       class="max-w-full h-auto rounded mb-4"
       loading="lazy"
     />
-  )}
-  
-  <p class="m-0">{description}</p>
-</article>
+    
+    <p class="m-0">{description}</p>
+  </article>
+)}
