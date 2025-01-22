@@ -3,7 +3,7 @@ import { collections } from "../content/config";
 
 /**
  * Return the root-level sections from a collection’s metadata.
- * These apply to the collection root page (e.g. /services).
+ * These apply to the collection root page (e.g., /services).
  */
 export function getCollectionSections(collectionName) {
   const colObj = collections[collectionName];
@@ -18,7 +18,11 @@ export function getCollectionSections(collectionName) {
 
 /**
  * Return the item-level sections for a specific item in a collection.
- * These apply to an individual item’s detail page (e.g. /services/web-design).
+ * These apply to an individual item’s detail page (e.g., /services/web-design).
+ *
+ * - If the item defines its own `sections` array, use it.
+ * - Otherwise, use the collection’s `itemsSections` array.
+ * - If both are undefined, return an empty array.
  */
 export function getItemSections(collectionName, slug) {
   const colObj = collections[collectionName];
@@ -34,6 +38,11 @@ export function getItemSections(collectionName, slug) {
     return [];
   }
 
-  // Return item.sections if defined; otherwise empty array.
-  return item.sections || [];
+  // If item.sections is defined (even if empty), use it
+  // Else, use collection.metadata.itemsSections
+  if (item.sections !== undefined) {
+    return item.sections;
+  } else {
+    return colObj.metadata.itemsSections || [];
+  }
 }

@@ -3,9 +3,8 @@ import { defineCollection, z } from 'astro:content';
 /** ------------------------------------------------------------------
  * Base schema for items
  * Now includes optional `addToQuery` so single items can also specify
- * how they appear in e.g. NavMenu.
+ * how they appear in e.g., NavMenu.
  * ------------------------------------------------------------------ */
-// 1) Define a Section schema
 const sectionSchema = z.object({
   collection: z.string(),
   queryName: z.string(),
@@ -13,7 +12,7 @@ const sectionSchema = z.object({
 
 const addToQueryItemSchema = z.object({
   name: z.string(),                        // The query name, e.g., "NavMenu"
-  queryItemText: z.string().optional(),    // Which field to use as the menu label (e.g. "title")
+  queryItemText: z.string().optional(),    // Which field to use as the menu label (e.g., "title")
 });
 
 const baseSchema = z.object({
@@ -29,20 +28,19 @@ const baseSchema = z.object({
   featured: z.boolean().optional(),
   redirectFrom: z.array(z.string()).optional(),
   parent: z.array(z.string()).optional(), 
-  // NEW: For single-item “add to query” definitions
   addToQuery: z.array(addToQueryItemSchema).optional(),
   sections: z.array(sectionSchema).optional(),
 });
 
 /** ------------------------------------------------------------------
  * Extended schema for the collection-level metadata
- * Also includes "addToQuery" for entire collection.
+ * Now includes `itemsSections` for assigning section templates to all items.
  * ------------------------------------------------------------------ */
 const collectionMetadataQuerySchema = z.object({
   name: z.string(),
   queryItemText: z.string().optional(),
   addItemsToQuery: z.boolean().optional(),
-  addHierarchyToQuery: z.boolean().optional(), // NEW: Replaces setChildrenUnderParents
+  addHierarchyToQuery: z.boolean().optional(),
 });
 
 const collectionMetadataSchema = z.object({
@@ -55,10 +53,9 @@ const collectionMetadataSchema = z.object({
   itemsHasPage: z.boolean(),
   redirectFrom: z.array(z.string()).optional(),
   isHierarchical: z.boolean().optional(),
-  // We can have multiple queries defined here too
   addToQuery: z.array(collectionMetadataQuerySchema).optional(),
   sections: z.array(sectionSchema).optional(),
-  itemsSections: z.array(sectionSchema).optional(),
+  itemsSections: z.array(sectionSchema).optional(), 
 });
 
 /* ------------------------------------------------------------------
@@ -80,9 +77,9 @@ const services = defineCollection({
     isHierarchical: true, 
     addToQuery: [
       {
-        name: "NavMenu",          // The existing (or new) query name to update
-        queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
-        addItemsToQuery: true,    // Whether to add all items from the collection into the query
+        name: "NavMenu",         
+        queryItemText: "title",  
+        addItemsToQuery: true,   
         addHierarchyToQuery: true, 
       },
     ],
@@ -90,7 +87,12 @@ const services = defineCollection({
       { collection: "services", queryName: "AllItemsServices" },
       { collection: "projects", queryName: "RelatedProjects" },
       { collection: "testimonials", queryName: "RelatedTestimonials" },
-    ],    
+    ],
+    itemsSections: [ 
+      { collection: "projects", queryName: "AllItemsProjects" },
+      { collection: "testimonials", queryName: "AllItemsTestimonials" },
+      { collection: "services", queryName: "RelatedServices" },
+    ],
   }),
   data: [
     {
@@ -107,7 +109,6 @@ const services = defineCollection({
         { collection: "testimonials", queryName: "RelatedTestimonials" },
       ],  
     },
-    // Child of Website Creation
     {
       title: 'Web Design',
       subtitle: 'Crafting beautiful site layouts',
@@ -116,10 +117,8 @@ const services = defineCollection({
       icon: '🎨',
       featuredImage: '/assets/background.svg',
       featured: true,
-      // Because isHierarchical is true, we interpret parent as referencing another item in this same collection
-      parent: ['website-creation', 'digital-marketing'], // Multiple parents
+      parent: ['website-creation', 'digital-marketing'], 
     },
-    // Another child of Website Creation
     {
       title: 'Web Development',
       subtitle: 'Modern, responsive websites',
@@ -135,7 +134,6 @@ const services = defineCollection({
         { collection: "projects", queryName: "RelatedProjects" },
       ],  
     },
-    // Another top-level service
     {
       title: 'Digital Marketing',
       subtitle: 'Broaden your online reach',
@@ -164,7 +162,6 @@ const services = defineCollection({
 ------------------------------------------------------------------ */
 const projects = defineCollection({
   schema: baseSchema.extend({
-    // For demonstration, referencing services array
     services: z.array(z.string()).optional(),
   }),
   metadata: collectionMetadataSchema.parse({
@@ -179,10 +176,10 @@ const projects = defineCollection({
     // isHierarchical is NOT set here (false by default)
     addToQuery: [
       {
-        name: "NavMenu",          // The existing (or new) query name to update
-        queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
-        addItemsToQuery: false,    // Whether to add all items from the collection into the query
-        addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
+        name: "NavMenu",          
+        queryItemText: "title",   
+        addItemsToQuery: false, 
+        addHierarchyToQuery: false, 
       },
     ],
     sections: [
@@ -190,6 +187,9 @@ const projects = defineCollection({
       { collection: "testimonials", queryName: "RelatedTestimonials" },
       { collection: "services", queryName: "RelatedServices" },
     ],  
+    itemsSections: [ 
+      { collection: "testimonials", queryName: "AllItemsTestimonials" },
+    ],
   }),
   data: [
     {
@@ -232,12 +232,13 @@ const testimonials = defineCollection({
     redirectFrom: ['testimonial'],
     addToQuery: [
       {
-        name: "NavMenu",          // The existing (or new) query name to update
-        queryItemText: "title",   // Field used as the label text (defaults to "title" if omitted)
-        addItemsToQuery: false,    // Whether to add all items from the collection into the query
-        addHierarchyToQuery: false, // NON-hierarchical: imitate setChildrenUnderParents behavior
+        name: "NavMenu",          
+        queryItemText: "title",   
+        addItemsToQuery: false,   
+        addHierarchyToQuery: false,
       },
-    ],  sections: [
+    ],
+    sections: [
       { collection: "testimonials", queryName: "AllItemsTestimonials" },
       { collection: "projects", queryName: "RelatedProjects" },
       { collection: "services", queryName: "RelatedServices" },
