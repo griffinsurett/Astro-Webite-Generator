@@ -1,5 +1,5 @@
 // src/utils/sections.js
-import { collections } from "../content/config";
+import { collections, homepageSections } from "../content/config";
 
 /**
  * Return the root-level sections from a collection’s metadata.
@@ -45,4 +45,11 @@ export function getItemSections(collectionName, slug) {
   } else {
     return colObj.metadata.itemsSections || [];
   }
+}
+
+/**
+ * Retrieve homepage sections from config.
+ */
+export function getHomepageSections() {
+  return homepageSections || [];
 }

@@ -1,61 +1,32 @@
----
+--- 
 import Layout from '../layouts/Layout.astro';
 import Section from '../components/Section.astro';
 import ContentTemplate from '../components/ContentTemplate.astro';
 import ItemsTemplate from '../components/ItemsTemplate.astro';
-import CollectionCard from '../components/CollectionsCard.astro';
-import Slider from '~/components/Slider/Slider.astro';
 import CollectionsCard from '../components/CollectionsCard.astro';
+import Slider from '~/components/Slider/Slider.astro';
+
+import { getHomepageSections } from '../utils/sections.js';
 ---
+
 <Layout title="Home Page" description="Welcome to our Astro-powered website.">
-  
   <Section>
     <h1>Welcome to Our Website</h1>
     <p>Your go-to platform for services and projects.</p>
   </Section>
   
-  <!-- Featured Services Section -->
-  <Section>
-    <ContentTemplate collection="services">
-      <ItemsTemplate
-        collection="services"
-        ItemComponent={CollectionsCard}
-        queryName={"FeaturedServices"}   
-        columns={3}
-        gap="1rem"
-      />
-    </ContentTemplate>
-  </Section>
-  
-  <!-- Featured Projects Section -->
-  <Section>
-    <ContentTemplate collection="projects">
-      <ItemsTemplate
-        collection="projects"
-        ItemComponent={CollectionCard}
-        queryName={"FeaturedProjects"} 
-        columns={3}
-        gap="1.5rem"
-      />
-    </ContentTemplate>
-  </Section>
-
-    <!-- Featured Testimonials Section -->
-  <Section>
-    <ContentTemplate collection="testimonials">
-      <Slider
-      queryName={"FeaturedTestimonials"}
-      autoplay={true}
-      autoplaySpeed={1500}
-      infinite={true}
-      slidesShown={1}
-      slidesScrolled={1}
-      sideArrows={true}
-      slideDots={true}
-      drag = {false}
-    />
-    </ContentTemplate>
-  </Section>
-
-
+  <!-- Dynamically Render Homepage Sections -->
+  {getHomepageSections().map((sec, index) => (
+    <Section key={index}>
+      <ContentTemplate collection={sec.collection}>
+          <ItemsTemplate
+            collection={sec.collection}
+            queryName={sec.queryName}
+            ItemComponent={CollectionsCard}
+            columns={3}
+            gap="1.5rem"
+          />
+      </ContentTemplate>
+    </Section>
+  ))}
 </Layout>

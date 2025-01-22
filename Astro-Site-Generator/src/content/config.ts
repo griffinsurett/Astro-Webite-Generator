@@ -280,3 +280,19 @@ export const collections = {
   projects,
   testimonials,
 };
+
+// Homepage sections configuration
+export const homepageSections = [
+  {
+    collection: "services",
+    queryName: "FeaturedServices",
+  },
+  {
+    collection: "projects",
+    queryName: "FeaturedProjects",
+  },
+  {
+    collection: "testimonials",
+    queryName: "FeaturedTestimonials",
+  },
+];
