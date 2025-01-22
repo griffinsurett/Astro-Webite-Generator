@@ -1,4 +1,4 @@
-// src/utils/queries/CollectionQueries.js
+// src/utils/collections/CollectionQueries.js
 
 import {
   getAvailableCollections,
@@ -9,7 +9,7 @@ import {
 
 import { collections } from "../../content/config"; // so we can read all data
 
-// Existing relational helpers for multi-hop, etc.
+// Existing relational helpers
 import {
   getDirectAndReverseRefs,
   extractReferencesToOtherCollections,
@@ -18,12 +18,36 @@ import {
   findSameCollectionReferences,
 } from "./RelationalHelpers.js";
 
-// ✨ NEW IMPORT
+// Hierarchical helpers
 import {
   findChildren,
   findParents,
   findSiblings,
 } from "./HierarchicalHelpers.js";
+
+/**
+ * Helper: Normalize an array of “raw” items or partial objects by slug,
+ * ensuring each item has the correct `hasPage` property and other normalized fields.
+ */
+async function normalizeItemsBySlug(colName, itemsOrSlugs) {
+  // 1) Fetch all normalized items from that collection
+  const allNormalized = await fetchCollectionItems(colName);
+
+  // 2) Build a map from slug -> fully normalized item
+  const map = new Map(allNormalized.map((itm) => [itm.slug, itm]));
+
+  // 3) Convert itemsOrSlugs into just an array of slugs
+  const slugs = itemsOrSlugs.map((x) => (typeof x === "string" ? x : x.slug));
+
+  // 4) Re-map to final array
+  const result = [];
+  for (const s of slugs) {
+    if (map.has(s)) {
+      result.push(map.get(s));
+    }
+  }
+  return result;
+}
 
 export function generateCollectionQueries() {
   const queries = [];
@@ -39,6 +63,7 @@ export function generateCollectionQueries() {
       name: `AllItems${formattedColName}`,
       description: `All items from "${colName}" collection`,
       async getItems() {
+        // Always fetch normalized items so they have hasPage
         const items = await fetchCollectionItems(colName);
         return items.map((itm) => ({
           ...itm,
@@ -52,6 +77,7 @@ export function generateCollectionQueries() {
       name: `Featured${formattedColName}`,
       description: `Featured items from "${colName}" collection`,
       async getItems() {
+        // Also fetch normalized, then filter by featured
         const items = await fetchFeaturedItems(colName);
         return items.map((itm) => ({
           ...itm,
@@ -60,23 +86,21 @@ export function generateCollectionQueries() {
       },
     });
 
-    // Inside generateCollectionQueries()
+    // 3) Related<CollectionName>
     queries.push({
       name: `Related${formattedColName}`,
       description: `Items from "${colName}" that reference or are referenced by the current item (multi-hop + same-collection).`,
       async getItems({ slug, currentCollection }) {
-        // 1) AGGREGATOR MODE: No slug, but we have currentCollection
+        // A) AGGREGATOR MODE: If we have a currentCollection but no slug
         if (!slug && currentCollection) {
-          // This is the old aggregator logic for /[collection] index pages
           const currentColObj = collections[currentCollection];
           if (!currentColObj) return [];
 
-          // Grab all items from the currentCollection
-          const allItemsInCurrent = currentColObj.data;
           // We'll gather references in a Set for uniqueness
           const aggregatorSet = new Set();
 
-          for (const item of allItemsInCurrent) {
+          // For each item in the “currentCollection,” collect references
+          for (const item of currentColObj.data) {
             if (colName !== currentCollection) {
               // Cross-collection references
               const multiHopItems = findMultiHopReferences(
@@ -96,14 +120,19 @@ export function generateCollectionQueries() {
             }
           }
 
-          // Convert to array, map in an href, return
-          return [...aggregatorSet].map((item) => ({
-            ...item,
-            href: `/${colName}/${item.slug}`,
+          // aggregatorSet is an array of partial objects from collections[colName].data
+          // but let's normalize them to ensure each has hasPage
+          const aggregatorArr = [...aggregatorSet];
+          const normalized = await normalizeItemsBySlug(colName, aggregatorArr);
+
+          // Then map to final output
+          return normalized.map((itm) => ({
+            ...itm,
+            href: `/${colName}/${itm.slug}`,
           }));
         }
 
-        // 2) ITEM-LEVEL MODE: We have a slug and a currentCollection
+        // B) ITEM-LEVEL MODE: If we have a slug + currentCollection
         if (!slug || !currentCollection) return [];
         const currentColObj = collections[currentCollection];
         if (!currentColObj) return [];
@@ -112,49 +141,44 @@ export function generateCollectionQueries() {
         const currentItem = currentColObj.data.find((i) => i.slug === slug);
         if (!currentItem) return [];
 
-        // Cross-collection references (unchanged)
+        // If cross-collection:
         if (colName !== currentCollection) {
-          const multiHopItems = findMultiHopReferences(
-            currentItem,
-            currentCollection,
-            colName
-          );
-          const unique = Array.from(new Set(multiHopItems));
-          return unique.map((item) => ({
-            ...item,
-            href: `/${colName}/${item.slug}`,
+          const multiHopItems = findMultiHopReferences(currentItem, currentCollection, colName);
+          const unique = [...new Set(multiHopItems)];
+
+          // Normalize
+          const normalized = await normalizeItemsBySlug(colName, unique);
+          return normalized.map((itm) => ({
+            ...itm,
+            href: `/${colName}/${itm.slug}`,
           }));
         }
 
-        // SAME-COLLECTION REFERENCES
-        // Check if the target collection is hierarchical
-        const isTargetHierarchical =
-          !!collections[colName].metadata.isHierarchical;
+        // SAME-COLLECTION references
+        const isTargetHierarchical = !!collections[colName].metadata.isHierarchical;
         if (isTargetHierarchical) {
-          // If hierarchical → Return siblings
+          // siblings approach
           const itemsInSameCollection = collections[colName].data;
           const siblings = findSiblings(currentItem, itemsInSameCollection);
-          return siblings.map((sibling) => ({
-            ...sibling,
-            href: `/${colName}/${sibling.slug}`,
+
+          const normalized = await normalizeItemsBySlug(colName, siblings);
+          return normalized.map((itm) => ({
+            ...itm,
+            href: `/${colName}/${itm.slug}`,
           }));
         } else {
-          // Otherwise (non-hierarchical) → Use the old same-collection references
-          const sameColItems = findSameCollectionReferences(
-            currentItem,
-            colName
-          );
-          return sameColItems.map((item) => ({
-            ...item,
-            href: `/${colName}/${item.slug}`,
+          // old same-collection references
+          const sameColItems = findSameCollectionReferences(currentItem, colName);
+          const normalized = await normalizeItemsBySlug(colName, sameColItems);
+          return normalized.map((itm) => ({
+            ...itm,
+            href: `/${colName}/${itm.slug}`,
           }));
         }
       },
     });
 
-    /* -----------------------------------------------
-       NEW: Add hierarchy-specific queries if “isHierarchical” is true
-    ----------------------------------------------- */
+    // 4) If isHierarchical, add children/parent/sibling queries
     if (isHierarchical) {
       // Children<CollectionName>
       queries.push({
@@ -162,6 +186,7 @@ export function generateCollectionQueries() {
         description: `All direct children of the current item in "${colName}".`,
         async getItems({ slug }) {
           if (!slug) return [];
+          // fetch normalized
           const items = await fetchCollectionItems(colName);
           const currentItem = items.find((i) => i.slug === slug);
           if (!currentItem) return [];
@@ -180,12 +205,12 @@ export function generateCollectionQueries() {
         description: `All parent ancestors of the current item in "${colName}".`,
         async getItems({ slug }) {
           if (!slug) return [];
+          // fetch normalized
           const items = await fetchCollectionItems(colName);
           const currentItem = items.find((i) => i.slug === slug);
           if (!currentItem) return [];
 
           const parents = findParents(currentItem, items);
-          // Usually you'd want to reverse() here if you prefer top-down order
           return parents.map((p) => ({
             ...p,
             href: `/${colName}/${p.slug}`,
@@ -199,6 +224,7 @@ export function generateCollectionQueries() {
         description: `All sibling items (same parent) in "${colName}".`,
         async getItems({ slug }) {
           if (!slug) return [];
+          // fetch normalized
           const items = await fetchCollectionItems(colName);
           const currentItem = items.find((i) => i.slug === slug);
           if (!currentItem) return [];

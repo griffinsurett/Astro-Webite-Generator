@@ -3,9 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import Section from '../components/Section.astro';
 import ContentTemplate from '../components/ContentTemplate.astro';
 import ItemsTemplate from '../components/ItemsTemplate.astro';
-import ServiceCard from '../components/ServiceCard.astro';
 import CollectionCard from '../components/CollectionsCard.astro';
 import Slider from '~/components/Slider/Slider.astro';
+import CollectionsCard from '../components/CollectionsCard.astro';
 ---
 <Layout title="Home Page" description="Welcome to our Astro-powered website.">
   
@@ -19,7 +19,7 @@ import Slider from '~/components/Slider/Slider.astro';
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
-        ItemComponent={ServiceCard}
+        ItemComponent={CollectionsCard}
         queryName={"FeaturedServices"}   
         columns={3}
         gap="1rem"

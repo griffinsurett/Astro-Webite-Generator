@@ -1,4 +1,5 @@
 // src/utils/collections/collectionPaths.js
+
 import { collections } from "../../content/config.ts";
 import { getAvailableCollections } from "./collectionHelpers.js";
 
@@ -13,24 +14,26 @@ export async function generateCollectionPaths() {
   return paths;
 }
 
-/** Generate static paths for all items in all collections, respecting itemsHasPage & item.hasPage. */
+/** 
+ * Generate static paths for all items in all collections. 
+ * Now we rely only on the item’s hasPage. 
+ */
 export async function generateItemPaths() {
   const paths = [];
   for (const [colName, collObj] of Object.entries(collections)) {
+    // If no data, skip
     if (!collObj.data) continue;
 
-    for (const item of collObj.data) {
-      const itemHasPage = item.hasPage ?? null;
-      if (collObj.metadata.itemsHasPage) {
-        // Collection allows item pages by default
-        if (itemHasPage !== false) {
-          paths.push({ params: { collection: colName, slug: item.slug } });
-        }
-      } else {
-        // Collection does NOT allow item pages by default
-        if (itemHasPage === true) {
-          paths.push({ params: { collection: colName, slug: item.slug } });
-        }
+    // We do NOT check collObj.metadata.itemsHasPage here anymore
+    // because each item is guaranteed to have a boolean .hasPage
+    for (const rawItem of collObj.data) {
+      const item = { ...rawItem }; 
+      // Optionally, you can re-use fetchCollectionItem() to ensure normalization:
+      // const item = await fetchCollectionItem(colName, rawItem.slug);
+
+      // item.hasPage is already set by normalization if not defined
+      if (item.hasPage) {
+        paths.push({ params: { collection: colName, slug: item.slug } });
       }
     }
   }

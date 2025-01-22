@@ -1,6 +1,16 @@
 // src/utils/collections/collectionFetchers.js
+
 import { collections } from "../../content/config.ts";
 import { isValidCollection } from "./collectionHelpers.js";
+
+// 1) Small helper: sets `item.hasPage` if undefined
+function normalizeItemHasPage(item, defaultHasPage) {
+  // If the item did not set hasPage explicitly, default to itemsHasPage
+  if (typeof item.hasPage === "undefined") {
+    item.hasPage = defaultHasPage;
+  }
+  return item;
+}
 
 /**
  * Fetches all items from a specified collection.
@@ -9,7 +19,13 @@ export async function fetchCollectionItems(collection) {
   if (!isValidCollection(collection)) {
     throw new Error(`Collection "${collection}" is not valid.`);
   }
-  return collections[collection].data;
+  const colObj = collections[collection];
+  const { itemsHasPage } = colObj.metadata;
+
+  // Return a shallow copy of each item but with hasPage normalized
+  return colObj.data.map((origItem) =>
+    normalizeItemHasPage({ ...origItem }, itemsHasPage)
+  );
 }
 
 /**
@@ -19,8 +35,16 @@ export async function fetchCollectionItem(collection, slug) {
   if (!isValidCollection(collection)) {
     throw new Error(`Collection "${collection}" is not valid.`);
   }
-  const items = collections[collection]?.data || [];
-  return items.find((data) => data.slug === slug) || null;
+
+  const colObj = collections[collection];
+  const { itemsHasPage } = colObj.metadata;
+  const found = colObj.data.find((data) => data.slug === slug) || null;
+
+  // Normalize hasPage if found
+  if (found) {
+    return normalizeItemHasPage({ ...found }, itemsHasPage);
+  }
+  return null;
 }
 
 /**

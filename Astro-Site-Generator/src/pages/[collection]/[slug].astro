@@ -4,7 +4,6 @@ import Section from "../../components/Section.astro";
 import Image from "../../components/Image.astro";
 import ContentTemplate from "../../components/ContentTemplate.astro";
 import ItemsTemplate from "../../components/ItemsTemplate.astro";
-import ServiceCard from "../../components/ServiceCard.astro";
 import CollectionCard from "../../components/CollectionsCard.astro";
 
 import { handleTwoSegmentRedirect } from "../../utils/redirects";
@@ -64,7 +63,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
-        ItemComponent={ServiceCard}
+        ItemComponent={CollectionCard}
         queryName="ParentServices"
         slug={slug}
         currentCollection={collection}
@@ -77,7 +76,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
-        ItemComponent={ServiceCard}
+        ItemComponent={CollectionCard}
         queryName="ChildrenServices"
         slug={slug}
         currentCollection={collection}
@@ -90,7 +89,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
-        ItemComponent={ServiceCard}
+        ItemComponent={CollectionCard}
         queryName="SiblingServices"
         slug={slug}
         currentCollection={collection}
@@ -103,7 +102,7 @@ const { title, description, icon, featuredImage, pageTitle } = pageData;
     <ContentTemplate collection="services">
       <ItemsTemplate
         collection="services"
-        ItemComponent={ServiceCard}
+        ItemComponent={CollectionCard}
         queryName="RelatedServices"
         slug={slug}
         currentCollection={collection}
