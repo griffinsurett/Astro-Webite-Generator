@@ -1,42 +1,36 @@
 ---
-// src/pages/[collection]/[slug].astro
-import CollectionItemLayout from "../../layouts/CollectionItemLayout.astro";
-import Section from "../../components/Section.astro";
-import ContentTemplate from "../../components/ContentTemplate.astro";
-import ItemsTemplate from "../../components/ItemsTemplate.astro";
-import CollectionsCard from "../../components/CollectionsCard.astro";
+import Layout from '../../layouts/Layout.astro';
+import SharedItemPage from '../../components/SharedItemPage.astro';
 
-import { generateTwoSegmentPaths, handleTwoSegmentRedirect } from "../../utils/redirects";
-import { getCollectionItemPageData } from "../../utils/collections";
-import { getItemSections } from "../../utils/sections.js";
-import { collections } from "../../content/config";
+import { generateTwoSegmentPaths, handleTwoSegmentRedirect } from '../../utils/redirects';
+import { getCollectionItemPageData } from '../../utils/collections';
+import { collections } from '../../content/config';
 
 const { collection, slug } = Astro.params;
 
-/** Build static paths */
+/** 1) Build static paths for two-segment item routes + aliases */
 export async function getStaticPaths() {
   return await generateTwoSegmentPaths();
 }
 
-// 1) Check if route is a redirect from older slugs, etc.
+// 2) Check if route is a known redirect
 const redirectTo = handleTwoSegmentRedirect(collection, slug);
 if (redirectTo) {
   return Astro.redirect(redirectTo);
 }
 
-// 2) Check if the collection itself is configured to NOT use two-segment
+// 3) Check if the collection is valid
 const colObj = collections[collection];
 if (!colObj) {
-  return Astro.redirect("/404");
+  return Astro.redirect('/404');
 }
 
-const { metadata } = colObj;
-if (metadata.collectionSlugInItem === false) {
-  // This entire collection’s items are at /slug => so /collection/slug is an alias that should redirect
+// If the collection is actually single-segment => redirect
+if (colObj.metadata.collectionSlugInItem === false) {
   return Astro.redirect(`/${slug}`);
 }
 
-// 3) If we get here, the collection is indeed two-segment. Let's fetch the item:
+// 4) Fetch item data
 let pageData;
 try {
   pageData = await getCollectionItemPageData(collection, slug);
@@ -45,34 +39,15 @@ try {
   return Astro.redirect("/404");
 }
 
-// 4) Extract fields
-const { title, description, icon, featuredImage, pageTitle } = pageData;
-const itemSections = getItemSections(collection, slug);
+// 5) Extract fields for SEO
+const { pageTitle, description, featuredImage } = pageData;
 ---
-
-<CollectionItemLayout
+<Layout
   title={pageTitle}
   description={description}
   image={featuredImage}
+  ogType="article"  
 >
-  <Section>
-    <h1>{icon || "📄"} {title}</h1>
-    <p>{description}</p>
-  </Section>
-
-  {itemSections.map((sec) => (
-    <Section>
-      <ContentTemplate collection={sec.collection}>
-        <ItemsTemplate
-          collection={sec.collection}
-          queryName={sec.queryName}
-          ItemComponent={CollectionsCard}
-          slug={slug}
-          currentCollection={collection}
-          columns={3}
-          gap="1.5rem"
-        />
-      </ContentTemplate>
-    </Section>
-  ))}
-</CollectionItemLayout>
+  <!-- Render the shared item details + sections -->
+  <SharedItemPage item={pageData} collection={collection} />
+</Layout>

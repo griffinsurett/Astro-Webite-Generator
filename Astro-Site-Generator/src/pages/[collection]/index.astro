@@ -1,41 +1,47 @@
 ---
-import CollectionLayout from "../../layouts/CollectionLayout.astro";
-import Section from "../../components/Section.astro";
-import ContentTemplate from "../../components/ContentTemplate.astro";
-import ItemsTemplate from "../../components/ItemsTemplate.astro";
-import CollectionsCard from "../../components/CollectionsCard.astro";
-
-import { generateCollectionPaths } from "../../utils/collections";
-import { getCollectionSections } from "../../utils/sections.js";
-import { collections } from "../../content/config"; // If you want direct access to the collection object
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import ContentTemplate from '../../components/ContentTemplate.astro';
+import ItemsTemplate from '../../components/ItemsTemplate.astro';
+import CollectionsCard from '../../components/CollectionsCard.astro';
+import { generateCollectionPaths } from '../../utils/collections';
+import { getCollectionSections } from '../../utils/sections.js';
+import { collections } from '../../content/config';
 
 const { collection } = Astro.params;
 
-/** Build static paths for each collection that has hasPage = true */
+/**
+ * 1) Build static paths for collections that have hasPage = true
+ */
 export async function getStaticPaths() {
   return await generateCollectionPaths();
 }
 
-// 1. Grab the actual collection object from config
-//    This gives us direct access to metadata fields like title, description, etc.
+// 2) Confirm the collection is valid
 const colObj = collections[collection];
 if (!colObj) {
-  throw new Error(`Collection "${collection}" not found in config.`);
+  throw new Error(`Collection "${collection}" not found.`);
 }
 
-// 2. Extract relevant data (e.g. metadata) for the layout
+// 3) Grab metadata for SEO
 const { title, description } = colObj.metadata;
 
-// 3. Retrieve the sections array from metadata to define which content blocks appear
+// 4) Retrieve “sections” to define content blocks
 const sections = getCollectionSections(collection);
 ---
-<CollectionLayout
+<Layout
   title={title}
   description={description}
+  image={colObj.metadata.featuredImage || ""}
+  ogType="website"
 >
-  <!-- Optional: You can put a top-level “hero” area or heading here. -->
-  <!-- E.g., <Section><h1>{title}</h1><p>{description}</p></Section> -->
+  <!-- Example top-level hero or heading for the collection -->
+  <Section>
+    <h1 class="text-3xl mb-5">{title}</h1>
+    <p class="text-lg mb-8">{description}</p>
+  </Section>
 
+  <!-- Render each configured section from metadata -->
   {sections.map((sec) => (
     <Section>
       <ContentTemplate collection={sec.collection}>
@@ -50,4 +56,4 @@ const sections = getCollectionSections(collection);
       </ContentTemplate>
     </Section>
   ))}
-</CollectionLayout>
+</Layout>

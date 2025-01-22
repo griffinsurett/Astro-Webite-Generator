@@ -1,30 +1,34 @@
---- 
+---
 import Layout from '../layouts/Layout.astro';
 import Section from '../components/Section.astro';
 import ContentTemplate from '../components/ContentTemplate.astro';
 import ItemsTemplate from '../components/ItemsTemplate.astro';
 import CollectionsCard from '../components/CollectionsCard.astro';
-import Slider from '~/components/Slider/Slider.astro';
-
 import { getHomepageSections } from '../utils/sections.js';
----
 
-<Layout title="Home Page" description="Welcome to our Astro-powered website.">
+/** 
+ * Example: a home page that shows featured sections from your config.
+ */
+const pageTitle = "Home Page";
+const pageDescription = "Welcome to our Astro-powered website.";
+const homepageSections = getHomepageSections(); // e.g. services, projects, etc.
+---
+<Layout title={pageTitle} description={pageDescription} ogType="website">
   <Section>
     <h1>Welcome to Our Website</h1>
     <p>Your go-to platform for services and projects.</p>
   </Section>
-  
+
   <!-- Dynamically Render Homepage Sections -->
-  {getHomepageSections().map((sec, index) => (
+  {homepageSections.map((sec, index) => (
     <Section key={index}>
       <ContentTemplate collection={sec.collection}>
-          <ItemsTemplate
-            collection={sec.collection}
-            queryName={sec.queryName}
-            ItemComponent={CollectionsCard}
-            gap="1.5rem"
-          />
+        <ItemsTemplate
+          collection={sec.collection}
+          queryName={sec.queryName}
+          ItemComponent={CollectionsCard}
+          gap="1.5rem"
+        />
       </ContentTemplate>
     </Section>
   ))}

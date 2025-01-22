@@ -1,47 +1,34 @@
 ---
-import CollectionItemLayout from "../layouts/CollectionItemLayout.astro";
-import Section from "../components/Section.astro";
-import ContentTemplate from "../components/ContentTemplate.astro";
-import ItemsTemplate from "../components/ItemsTemplate.astro";
-import CollectionsCard from "../components/CollectionsCard.astro";
+import Layout from '../layouts/Layout.astro';
+import SharedItemPage from '../components/SharedItemPage.astro';
 
 import {
   generateSingleSegmentPaths,
-  handleSingleSegmentRedirect
-} from "../utils/redirects";
-
+  handleSingleSegmentRedirect,
+} from '../utils/redirects';
 import {
-  getCollectionItemPageData,
   getAvailableCollections,
-} from "../utils/collections";
-
-import { getItemSections } from "../utils/sections.js";
-import { collections } from "../content/config";
+  getCollectionItemPageData,
+} from '../utils/collections';
+import { collections } from '../content/config';
 
 const { slug } = Astro.params;
 
-/**
- * Generate all single-segment paths.
- */
+/** 1) Build static paths for single-segment item routes + aliases */
 export async function getStaticPaths() {
   return await generateSingleSegmentPaths();
 }
 
-/** 1) Check if this slug is some old “redirectFrom” or collection redirect. */
-const redirectTo = handleSingleSegmentRedirect(slug);
-if (redirectTo) {
-  // If handleSingleSegmentRedirect returns a string, we do a redirect.
-  // If it returns `null`, it means “go ahead and render here.”
-  if (redirectTo !== null) {
-    return Astro.redirect(redirectTo);
-  }
+// 2) Check if this slug is an old “redirectFrom” or a collection alias
+const redirectResult = handleSingleSegmentRedirect(slug);
+if (redirectResult && redirectResult !== null) {
+  return Astro.redirect(redirectResult);
 }
 
-// 2) If redirectTo was null, we attempt to find which collection item belongs to.
+// 3) Otherwise, see if it belongs to a single-segment collection
 let foundCollection = null;
 let foundItem = null;
 
-/** We want to see if `slug` is in any collection. If it is, check that collection’s `collectionSlugInItem`. */
 for (const colName of getAvailableCollections()) {
   const colObj = collections[colName];
   const maybeItem = colObj.data.find((itm) => itm.slug === slug);
@@ -51,22 +38,16 @@ for (const colName of getAvailableCollections()) {
     break;
   }
 }
-
-// 3) If not found at all, 404
 if (!foundCollection || !foundItem) {
   return Astro.redirect("/404");
 }
 
-// 4) If the item’s collection says `collectionSlugInItem === true`, we actually want /collection/slug
-const { collectionSlugInItem } = collections[foundCollection].metadata || {};
-
-if (collectionSlugInItem === true) {
-  // => redirect to the two-segment route
+// If that collection is “two-segment”, we must redirect to /collection/slug
+if (collections[foundCollection].metadata.collectionSlugInItem === true) {
   return Astro.redirect(`/${foundCollection}/${slug}`);
 }
 
-// 5) Otherwise, if we get here, collectionSlugInItem === false => show single-segment page
-//    So fetch full “pageData” and sections:
+// 4) If we get here, it’s truly a single-segment item.
 let pageData;
 try {
   pageData = await getCollectionItemPageData(foundCollection, slug);
@@ -75,34 +56,14 @@ try {
   return Astro.redirect("/404");
 }
 
-const { title, description, icon, featuredImage, pageTitle } = pageData;
-const itemSections = getItemSections(foundCollection, slug);
+// 5) Extract fields for SEO
+const { pageTitle, description, featuredImage } = pageData;
 ---
-
-<CollectionItemLayout
+<Layout
   title={pageTitle}
   description={description}
   image={featuredImage}
+  ogType="article"
 >
-  <Section>
-    <h1>{icon || "📄"} {title}</h1>
-    <p>{description}</p>
-  </Section>
-
-
-  {itemSections.map((sec) => (
-    <Section>
-      <ContentTemplate collection={sec.collection}>
-        <ItemsTemplate
-          collection={sec.collection}
-          queryName={sec.queryName}
-          ItemComponent={CollectionsCard}
-          slug={slug}
-          currentCollection={foundCollection}
-          columns={3}
-          gap="1.5rem"
-        />
-      </ContentTemplate>
-    </Section>
-  ))}
-</CollectionItemLayout>
+  <SharedItemPage item={pageData} collection={foundCollection} />
+</Layout>

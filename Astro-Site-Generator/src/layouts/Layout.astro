@@ -2,35 +2,60 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import siteConfig from '../content/site.config.js';
-import "../styles/global.css";
+import '../styles/global.css';
 
-const { title, description } = Astro.props;
+/**
+ * SINGLE universal layout
+ *
+ * Props you can pass from each page:
+ *   - title (string)
+ *   - description (string)
+ *   - image (string) => for OG/Twitter meta
+ *   - ogType (string) => "website", "article", etc.
+ */
+const {
+  title = siteConfig.title,
+  description = siteConfig.description,
+  image = siteConfig.logo,
+  ogType = "website",
+} = Astro.props;
 ---
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
     <meta name="generator" content={Astro.generator} />
+
     <title>{title}</title>
     <meta name="description" content={description} />
-    
-    <!-- OG & Twitter metas -->
+
+    <!-- Open Graph -->
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={siteConfig.logo} />
-    <meta property="og:type" content="website" />
+    <meta property="og:image" content={image} />
+    <meta property="og:type" content={ogType} />
+
+    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={siteConfig.logo} />
+    <meta name="twitter:image" content={image} />
+
+    <!-- Optional: if pages want to inject more <head> tags, they can use a named slot -->
+    <slot name="head" />
   </head>
+
   <body class="m-0 p-0 w-full h-full font-sans bg-gray-f9 text-gray-333">
-    <Header siteTitle={siteConfig.title} logo={siteConfig.logo} />
+    <!-- Your site header -->
+    <Header />
+
     <main class="px-8 py-8 min-h-[80vh]">
       <slot />
     </main>
+
+    <!-- Your site footer -->
     <Footer />
   </body>
 </html>

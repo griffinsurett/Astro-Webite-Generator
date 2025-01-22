@@ -1,0 +1,50 @@
+---
+/**
+ * src/components/SharedItemPage.astro
+ * 
+ * Renders the “item detail” + sections for a single item in a collection,
+ * used by both the two-segment and single-segment item routes.
+ *
+ * Props:
+ *   - item: Full item object (includes fields like title, description, icon, etc.)
+ *   - collection: The string name of the collection (e.g. "services").
+ */
+ import Section from "./Section.astro";
+import ContentTemplate from "./ContentTemplate.astro";
+import ItemsTemplate from "./ItemsTemplate.astro";
+import CollectionsCard from "./CollectionsCard.astro";
+import { getItemSections } from "../utils/sections.js";
+
+const { item, collection } = Astro.props;
+
+if (!item || !collection) {
+  throw new Error(`[SharedItemPage] Missing "item" or "collection" prop`);
+}
+
+// Gather the item-level sections (or fallback to the collection’s itemsSections)
+const itemSections = getItemSections(collection, item.slug);
+---
+<!-- The “hero” or main overview for this item -->
+<section>
+  <h1 class="text-2xl md:text-3xl">
+    {item.icon || "📄"} {item.title}
+  </h1>
+  <p class="text-lg mb-4">{item.description}</p>
+</section>
+
+<!-- Render each section (related projects, etc.) -->
+{itemSections.map((sec) => (
+  <Section>
+    <ContentTemplate collection={sec.collection}>
+      <ItemsTemplate
+        collection={sec.collection}
+        queryName={sec.queryName}
+        ItemComponent={CollectionsCard}
+        slug={item.slug}
+        currentCollection={collection}
+        columns={3}
+        gap="1.5rem"
+      />
+    </ContentTemplate>
+  </Section>
+))}
