@@ -11,8 +11,8 @@ const sectionSchema = z.object({
 });
 
 const addToQueryItemSchema = z.object({
-  name: z.string(),                        // The query name, e.g., "NavMenu"
-  queryItemText: z.string().optional(),    // Which field to use as the menu label (e.g., "title")
+  name: z.string(),                        
+  queryItemText: z.string().optional(),   
 });
 
 const baseSchema = z.object({
