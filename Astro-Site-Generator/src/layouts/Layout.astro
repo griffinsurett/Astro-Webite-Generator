@@ -5,57 +5,81 @@ import siteConfig from '../content/site.config.js';
 import '../styles/global.css';
 
 /**
- * SINGLE universal layout
+ * SINGLE universal layout with enhanced SEO.
  *
- * Props you can pass from each page:
- *   - title (string)
- *   - description (string)
- *   - image (string) => for OG/Twitter meta
- *   - ogType (string) => "website", "article", etc.
+ * Props (you can pass from each page):
+ *  - title (string)           => <title>, plus og:title, twitter:title
+ *  - description (string)     => <meta name="description">, og:description, twitter:description
+ *  - image (string)           => <meta property="og:image">, <meta name="twitter:image">
+ *  - ogType (string)          => "website" or "article" or etc. Default: "website"
+ *  - canonicalUrl (string)    => <link rel="canonical" ...>
+ *  - robots (string)          => <meta name="robots" ...> (e.g. "index,follow" or "noindex")
+ *  - siteName (string)        => <meta property="og:site_name">
  */
 const {
   title = siteConfig.title,
   description = siteConfig.description,
-  image = siteConfig.logo,
+  image = siteConfig.logo,      // fallback if not provided
   ogType = "website",
+  canonicalUrl = null,          // optional
+  robots = null,                // e.g. "index,follow"
+  siteName = siteConfig.title,  // e.g. "Your Site Name"
 } = Astro.props;
 ---
+
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
-    <meta name="generator" content={Astro.generator} />
+<head>
+  <!-- Basic meta tags -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="generator" content={Astro.generator} />
+  <link rel="icon" type="image/svg+xml" href={siteConfig.favicon} />
 
-    <title>{title}</title>
-    <meta name="description" content={description} />
+  <!-- Title & Description -->
+  <title>{title}</title>
+  <meta name="description" content={description} />
 
-    <!-- Open Graph -->
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:image" content={image} />
-    <meta property="og:type" content={ogType} />
+  <!-- Canonical link (if provided) -->
+  {canonicalUrl && (
+    <link rel="canonical" href={canonicalUrl} />
+  )}
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={image} />
+  <!-- Robots (if provided) -->
+  {robots && (
+    <meta name="robots" content={robots} />
+  )}
 
-    <!-- Optional: if pages want to inject more <head> tags, they can use a named slot -->
-    <slot name="head" />
-  </head>
+  <!-- Open Graph -->
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={image} />
+  <meta property="og:type" content={ogType} />
+  <meta property="og:site_name" content={siteName} />
 
-  <body class="m-0 p-0 w-full h-full font-sans bg-gray-f9 text-gray-333">
-    <!-- Your site header -->
-    <Header />
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={image} />
 
-    <main class="px-8 py-8 min-h-[80vh]">
-      <slot />
-    </main>
+  <!-- Optional named slot for additional <head> tags the page might want -->
+  <slot name="head" />
 
-    <!-- Your site footer -->
-    <Footer />
-  </body>
+  <!-- Optional slot specifically for structured data (JSON-LD) if desired -->
+  <slot name="structuredData" />
+</head>
+
+<body class="m-0 p-0 w-full h-full font-sans bg-gray-f9 text-gray-333">
+  <!-- Global site header -->
+  <Header />
+
+  <!-- Main content area -->
+  <main class="px-8 py-8 min-h-[80vh]">
+    <slot />
+  </main>
+
+  <!-- Global site footer -->
+  <Footer />
+</body>
 </html>
