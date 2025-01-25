@@ -7,14 +7,15 @@ import '../styles/global.css';
 /**
  * SINGLE universal layout with enhanced SEO.
  *
- * Props (you can pass from each page):
- *  - title (string)           => <title>, plus og:title, twitter:title
- *  - description (string)     => <meta name="description">, og:description, twitter:description
- *  - image (string)           => <meta property="og:image">, <meta name="twitter:image">
- *  - ogType (string)          => "website" or "article" or etc. Default: "website"
- *  - canonicalUrl (string)    => <link rel="canonical" ...>
- *  - robots (string)          => <meta name="robots" ...> (e.g. "index,follow" or "noindex")
- *  - siteName (string)        => <meta property="og:site_name">
+ * Props:
+ *  - title (string)
+ *  - description (string)
+ *  - image (string)
+ *  - ogType (string)
+ *  - canonicalUrl (string)
+ *  - robots (string)
+ *  - siteName (string)
+ *  - crawl (boolean) // New prop to control indexing
  */
 const {
   title = siteConfig.title,
@@ -24,9 +25,9 @@ const {
   canonicalUrl = null,          // optional
   robots = null,                // e.g. "index,follow"
   siteName = siteConfig.title,  // e.g. "Your Site Name"
+  crawl = true,                 // Default to true
 } = Astro.props;
 ---
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,10 +46,13 @@ const {
     <link rel="canonical" href={canonicalUrl} />
   )}
 
-  <!-- Robots (if provided) -->
+  <!-- Robots Meta Tag -->
   {robots && (
     <meta name="robots" content={robots} />
   )}
+
+  <!-- Conditional Noindex Tag based on crawl flag -->
+  {!crawl && <meta name="robots" content="noindex, nofollow" />}
 
   <!-- Open Graph -->
   <meta property="og:title" content={title} />
@@ -63,10 +67,10 @@ const {
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={image} />
 
-  <!-- Optional named slot for additional <head> tags the page might want -->
+  <!-- Optional named slot for additional <head> tags -->
   <slot name="head" />
 
-  <!-- Optional slot specifically for structured data (JSON-LD) if desired -->
+  <!-- Optional slot for structured data -->
   <slot name="structuredData" />
 </head>
 

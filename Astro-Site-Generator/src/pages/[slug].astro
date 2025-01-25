@@ -21,7 +21,7 @@ export async function getStaticPaths() {
 
 // 2) Check if this slug is an old “redirectFrom” or a collection alias
 const redirectResult = handleSingleSegmentRedirect(slug);
-if (redirectResult && redirectResult !== null) {
+if (redirectResult) {
   return Astro.redirect(redirectResult);
 }
 
@@ -51,19 +51,20 @@ if (collections[foundCollection].metadata.collectionSlugInItem === true) {
 let pageData;
 try {
   pageData = await getCollectionItemPageData(foundCollection, slug);
-} catch (err) {
-  console.error(err);
+} catch (error) {
+  console.error(error);
   return Astro.redirect("/404");
 }
 
 // 5) Extract fields for SEO
-const { pageTitle, description, featuredImage } = pageData;
+const { pageTitle, description, featuredImage, crawl } = pageData;
 ---
 <Layout
   title={pageTitle}
   description={description}
   image={featuredImage}
   ogType="article"
+  crawl={crawl} 
 >
   <SharedItemPage item={pageData} collection={foundCollection} />
 </Layout>

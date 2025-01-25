@@ -1,33 +1,20 @@
 ---
-const { title, description, slug, icon, featuredImage, collection, hasPage } = Astro.props;
+/* src/components/CollectionsCard.astro */
+const {
+  title,
+  description,
+  slug,
+  icon,
+  featuredImage,
+  collection,
+  hasPage = false, 
+  link,            
+} = Astro.props;
 
-console.log(`Rendering CollectionsCard for "${title}" with hasPage=${hasPage}`);
+console.log(`Rendering CollectionsCard for "${title}" with hasPage=${hasPage} and link=${link}`);
 ---
-{hasPage ? (
-  <a href={`/${collection}/${slug}`} class="no-underline text-inherit">
-    <article
-      class="
-        border border-gray-ea p-4 rounded-lg
-        transition-shadow duration-200
-        hover:shadow-lg-custom
-      "
-    >
-      <h2 class="mb-2 flex items-center">
-        {icon || '📄'}
-        <span class="ml-2">{title}</span>
-      </h2>
-      
-      <img
-        src={featuredImage}
-        alt={`${title} Featured Image`}
-        class="max-w-full h-auto rounded mb-4 cursor-pointer hover:opacity-90 transition-opacity duration-200"
-        loading="lazy"
-      />
-      
-      <p class="m-0">{description}</p>
-    </article>
-  </a>
-) : (
+
+{hasPage || link ? (
   <article
     class="
       border border-gray-ea p-4 rounded-lg
@@ -37,15 +24,73 @@ console.log(`Rendering CollectionsCard for "${title}" with hasPage=${hasPage}`);
   >
     <h2 class="mb-2 flex items-center">
       {icon || '📄'}
-      <span class="text-inherit ml-2">{title}</span>
+      <span class="ml-2">{title}</span>
     </h2>
     
-    <img
-      src={featuredImage}
-      alt={`${title} Featured Image`}
-      class="max-w-full h-auto rounded mb-4"
-      loading="lazy"
-    />
+    {featuredImage && (
+      <img
+        src={featuredImage}
+        alt={`${title} Featured Image`}
+        class="max-w-full h-auto rounded mb-4 cursor-pointer hover:opacity-90 transition-opacity duration-200"
+        loading="lazy"
+      />
+    )}
+    
+    <p class="m-0">{description}</p>
+    
+    {/* Conditional Link Rendering */}
+    {hasPage || link ? (
+      <a
+        href={
+          link
+            ? link
+            : `/${collection}/${slug}`
+        }
+        class={`mt-4 inline-block text-blue-500 hover:underline ${
+          link && !/^https?:\/\//i.test(link) && !/^mailto:/i.test(link) && !/^tel:/i.test(link)
+            ? 'target="_blank" rel="noopener noreferrer"'
+            : ''
+        }`}
+        {...(link && /^https?:\/\//i.test(link) ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      >
+        {link
+          ? (() => {
+              if (/^mailto:/i.test(link)) {
+                return 'Email Us';
+              } else if (/^tel:/i.test(link)) {
+                return 'Call Us';
+              } else if (/^https?:\/\//i.test(link)) {
+                return 'Visit Site';
+              } else {
+                return 'Learn More';
+              }
+            })()
+          : 'Learn More'}
+      </a>
+    ) : null}
+  </article>
+) : (
+  // Neither hasPage nor link is true: render the card without any clickable elements
+  <article
+    class="
+      border border-gray-ea p-4 rounded-lg
+      transition-shadow duration-200
+      hover:shadow-lg-custom
+    "
+  >
+    <h2 class="mb-2 flex items-center">
+      {icon || '📄'}
+      <span class="ml-2">{title}</span>
+    </h2>
+    
+    {featuredImage && (
+      <img
+        src={featuredImage}
+        alt={`${title} Featured Image`}
+        class="max-w-full h-auto rounded mb-4"
+        loading="lazy"
+      />
+    )}
     
     <p class="m-0">{description}</p>
   </article>

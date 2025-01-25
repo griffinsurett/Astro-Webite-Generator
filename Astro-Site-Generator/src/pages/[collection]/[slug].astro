@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import SharedItemPage from '../../components/SharedItemPage.astro';
 
 import { generateTwoSegmentPaths, handleTwoSegmentRedirect } from '../../utils/redirects';
-import { getCollectionItemPageData } from '../../utils/collections';
+import { getCollectionItemPageData } from '../../utils/collections/collectionPageData.js';
 import { collections } from '../../content/config';
 
 const { collection, slug } = Astro.params;
@@ -34,19 +34,20 @@ if (colObj.metadata.collectionSlugInItem === false) {
 let pageData;
 try {
   pageData = await getCollectionItemPageData(collection, slug);
-} catch (err) {
-  console.error(err);
+} catch (error) {
+  console.error(error);
   return Astro.redirect("/404");
 }
 
 // 5) Extract fields for SEO
-const { pageTitle, description, featuredImage } = pageData;
+const { pageTitle, description, featuredImage, crawl } = pageData;
 ---
 <Layout
   title={pageTitle}
   description={description}
   image={featuredImage}
-  ogType="article"  
+  ogType="article"
+  crawl={crawl}
 >
   <!-- Render the shared item details + sections -->
   <SharedItemPage item={pageData} collection={collection} />

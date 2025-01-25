@@ -11,9 +11,17 @@ import { getHomepageSections } from '../utils/sections.js';
  */
 const pageTitle = "Home Page";
 const pageDescription = "Welcome to our Astro-powered website.";
-const homepageSections = getHomepageSections(); // e.g. services, projects, etc.
+const featuredImage = "/assets/homepage-banner.jpg"; // Example image
+const crawl = true; // Home page should be crawlable
+const homepageSections = getHomepageSections(); // e.g., services, projects, etc.
 ---
-<Layout title={pageTitle} description={pageDescription} ogType="website">
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  image={featuredImage}
+  ogType="website"
+  crawl={crawl}
+>
   <Section>
     <h1>Welcome to Our Website</h1>
     <p>Your go-to platform for services and projects.</p>

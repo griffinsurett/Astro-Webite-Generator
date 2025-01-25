@@ -6,50 +6,53 @@
  * Otherwise, return a flat array of { label, href }.
  */
 export function buildMenuItemsFromCollection(items, colName, labelField = "title", setChildren = false) {
-    if (!setChildren) {
-      return items.map((itm) => ({
-        label: itm[labelField] || itm.title,
-        href: `/${colName}/${itm.slug}`,
-      }));
-    }
-  
-    // Hierarchical approach
-    const nodeMap = new Map(
-      items.map((itm) => [
-        itm.slug,
-        {
-          label: itm[labelField] || itm.title,
-          href: `/${colName}/${itm.slug}`,
-          children: [],
-        },
-      ])
-    );
-  
-    // Assign children to their respective parents
-    for (const itm of items) {
-      if (!itm.parent) continue;
-  
-      const parentSlugs = Array.isArray(itm.parent) ? itm.parent : [itm.parent];
-      for (const parentSlug of parentSlugs) {
-        const parentNode = nodeMap.get(parentSlug);
-        if (parentNode) {
-          parentNode.children.push(nodeMap.get(itm.slug));
-        } else {
-          console.warn(`Parent slug "${parentSlug}" not found in collection "${colName}".`);
-        }
-      }
-    }
-  
-    // Collect top-level nodes (those without parents)
-    const topNodes = [];
-    for (const itm of items) {
-      if (!itm.parent || itm.parent.length === 0) {
-        topNodes.push(nodeMap.get(itm.slug));
-      }
-    }
-  
-    return topNodes;
+  if (!setChildren) {
+    return items.map((itm) => ({
+      label: itm[labelField] || itm.title,
+      href: itm.link ? itm.link : `/${colName}/${itm.slug}`,
+      external: /^https?:\/\//i.test(itm.link || ''),
+    }));
   }
+
+  // Hierarchical approach
+  const nodeMap = new Map(
+    items.map((itm) => [
+      itm.slug,
+      {
+        label: itm[labelField] || itm.title,
+        href: itm.link ? itm.link : `/${colName}/${itm.slug}`,
+        external: /^https?:\/\//i.test(itm.link || ''),
+        children: [],
+      },
+    ])
+  );
+
+  // Assign children to their respective parents
+  for (const itm of items) {
+    if (!itm.parent) continue;
+
+    const parentSlugs = Array.isArray(itm.parent) ? itm.parent : [itm.parent];
+
+    for (const parentSlug of parentSlugs) {
+      const parentNode = nodeMap.get(parentSlug);
+      if (parentNode) {
+        parentNode.children.push(nodeMap.get(itm.slug));
+      } else {
+        console.warn(`Parent slug "${parentSlug}" not found in collection "${colName}".`);
+      }
+    }
+  }
+
+  // Collect top-level nodes (those without parents)
+  const topNodes = [];
+  for (const itm of items) {
+    if (!itm.parent || itm.parent.length === 0) {
+      topNodes.push(nodeMap.get(itm.slug));
+    }
+  }
+
+  return topNodes;
+}
   
   /**
    * handleCollectionLevelAddToQuery:

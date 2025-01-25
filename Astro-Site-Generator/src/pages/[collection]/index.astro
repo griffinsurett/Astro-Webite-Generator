@@ -7,6 +7,7 @@ import CollectionsCard from '../../components/CollectionsCard.astro';
 import { generateCollectionPaths } from '../../utils/collections';
 import { getCollectionSections } from '../../utils/sections.js';
 import { collections } from '../../content/config';
+import { getCollectionPageData } from '../../utils/collections/collectionPageData.js';
 
 const { collection } = Astro.params;
 
@@ -24,7 +25,7 @@ if (!colObj) {
 }
 
 // 3) Grab metadata for SEO
-const { title, description } = colObj.metadata;
+const { title, description, featuredImage, crawl } = colObj.metadata;
 
 // 4) Retrieve “sections” to define content blocks
 const sections = getCollectionSections(collection);
@@ -32,8 +33,9 @@ const sections = getCollectionSections(collection);
 <Layout
   title={title}
   description={description}
-  image={colObj.metadata.featuredImage || ""}
+  image={featuredImage || ""}
   ogType="website"
+  crawl={crawl} 
 >
   <!-- Example top-level hero or heading for the collection -->
   <Section>
