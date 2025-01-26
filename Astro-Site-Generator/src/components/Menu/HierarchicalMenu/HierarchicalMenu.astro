@@ -25,7 +25,6 @@ const query = await executeQuery(queryName);
       <BarMenu className="bar-menu" queryName={query} />
     </div>
   )}
-
   {/*
     If hamburgerOnly === false => show Hamburger only on <md (block md:hidden).
     If hamburgerOnly === true => show Hamburger always (block).
@@ -37,10 +36,10 @@ const query = await executeQuery(queryName);
         : "hamburger-menu block md:hidden" /* existing logic: show only on <md */
     }
   >
-    <!-- <HamburgerMenu
+    <HamburgerMenu
       Width={"3/6"}
       client:load
       queryName={query}
-    /> -->
+    />
   </div>
 </nav>
