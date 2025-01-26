@@ -3,17 +3,18 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal from '../../../Modal.jsx';
 import HamburgerMenuItem from './MenuItem.jsx';
+import HamburgerIcon from './HamburgerIcon.jsx';
 
 const HamburgerMenu = ({
   queryName,
   Width,
   className = '',
   showCloseButton = false,
-  HamburgerTransform = true, // New prop with default value true
+  HamburgerTransform = true, // default: transform lines on open
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Toggle the modal open/close state
+  // Toggles the modal open/close state
   const toggleMenu = () => setIsOpen((prev) => !prev);
   const closeMenu = () => setIsOpen(false);
 
@@ -30,38 +31,14 @@ const HamburgerMenu = ({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Checkbox controlling the hamburger menu */}
-      <input
-        type="checkbox"
-        id="hamburger-toggle"
-        className="hidden"
-        checked={isOpen}
-        onChange={toggleMenu}
+      {/* Hamburger icon + hidden checkbox */}
+      <HamburgerIcon
+        isOpen={isOpen}
+        transform={HamburgerTransform}
+        toggleMenu={toggleMenu}
       />
 
-      {/* Hamburger Icon */}
-      <label htmlFor="hamburger-toggle" className="flex flex-col justify-between w-8 h-6 cursor-pointer z-1100">
-        {/* Line 1 */}
-        <span
-          className={`block h-0.5 bg-gray-800 transition-transform duration-300 ${
-            isOpen && HamburgerTransform ? 'transform rotate-45 translate-y-2.5' : ''
-          }`}
-        ></span>
-        {/* Line 2 */}
-        <span
-          className={`block h-0.5 bg-gray-800 transition-opacity duration-300 ${
-            isOpen && HamburgerTransform ? 'opacity-0' : ''
-          }`}
-        ></span>
-        {/* Line 3 */}
-        <span
-          className={`block h-0.5 bg-gray-800 transition-transform duration-300 ${
-            isOpen && HamburgerTransform ? 'transform -rotate-45 -translate-y-2.5' : ''
-          }`}
-        ></span>
-      </label>
-
-      {/* Modal */}
+      {/* Side-drawer modal */}
       <Modal
         isOpen={isOpen}
         onChange={toggleMenu}
@@ -91,8 +68,8 @@ HamburgerMenu.propTypes = {
   queryName: PropTypes.array.isRequired,
   Width: PropTypes.string, // e.g., "75%", "65%", etc.
   className: PropTypes.string,
-  showCloseButton: PropTypes.bool, // New prop to control close button
-  HamburgerTransform: PropTypes.bool, // New prop to control hamburger transformation
+  showCloseButton: PropTypes.bool, // controls the close (X) button in Modal
+  HamburgerTransform: PropTypes.bool, // controls the line rotation animation
 };
 
 export default HamburgerMenu;
