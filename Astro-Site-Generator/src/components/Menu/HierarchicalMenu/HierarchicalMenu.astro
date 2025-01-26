@@ -1,24 +1,14 @@
 ---
-import BarMenu from "./BarMenu/BarMenu.astro";
-import HamburgerMenu from "./HamburgerMenu/HamburgerMenu.jsx";
-import { executeQuery } from "../../../utils/queries/executeQuery.js";
+import { executeQuery } from '../../../utils/queries/executeQuery.js';
+import BarMenu from './BarMenu/BarMenu.astro';
+import HamburgerMenu from './HamburgerMenu/HamburgerMenu.jsx';
+import HamburgerIcon from './HamburgerMenu/HamburgerIcon.astro';
 
-// 1) Destructure the new "hamburgerOnly" prop, defaulting to false
-interface Props {
-  queryName: string;
-  className?: string;
-  hamburgerOnly?: boolean; // new
-}
+const { queryName, className = '', hamburgerOnly = false } = Astro.props;
 
-const {
-  queryName,
-  className = "",
-  hamburgerOnly = false,
-} = Astro.props as Props;
-
-// 2) Fetch menu items
 const query = await executeQuery(queryName);
 ---
+
 <nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
   {!hamburgerOnly && (
     <div class="bar-menu hidden md:block">
@@ -27,20 +17,26 @@ const query = await executeQuery(queryName);
   )}
 
   {/*
-    If hamburgerOnly === false => show Hamburger only on <md (block md:hidden).
-    If hamburgerOnly === true => show Hamburger always (block).
+    If hamburgerOnly === false => show hamburger on <md
+    If hamburgerOnly === true => show hamburger always
   */}
   <div
     class={
       hamburgerOnly
-        ? "hamburger-menu block"       /* show on all screens */
-        : "hamburger-menu block md:hidden" /* existing logic: show only on <md */
+        ? "hamburger-menu block"
+        : "hamburger-menu block md:hidden"
     }
   >
+    <!-- 1) Our new static icon -->
+    <HamburgerIcon />
+
+    <!-- 2) The React side-drawer logic (loads client-side) -->
     <HamburgerMenu
-      Width={"3/6"}
       client:load
       queryName={query}
+      Width="60%"
+      showCloseButton={true}
+      className="mt-0"
     />
   </div>
 </nav>

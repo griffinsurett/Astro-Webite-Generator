@@ -3,73 +3,89 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Modal from '../../../Modal.jsx';
 import HamburgerMenuItem from './MenuItem.jsx';
-import HamburgerIcon from './HamburgerIcon.jsx';
 
 const HamburgerMenu = ({
   queryName,
-  Width,
+  Width = '75%',
   className = '',
-  showCloseButton = false,
-  HamburgerTransform = true, // default: transform lines on open
+  showCloseButton = true,
+  HamburgerTransform = true, // no longer used for the lines, purely for possible extra logic
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Toggles the modal open/close state
-  const toggleMenu = () => setIsOpen((prev) => !prev);
-  const closeMenu = () => setIsOpen(false);
+  // 1) Attach a listener to the #hamburger-toggle checkbox (from HamburgerIcon.astro)
+  useEffect(() => {
+    const checkbox = document.getElementById('hamburger-toggle');
+    if (!checkbox) return;
 
-  // Close automatically if screen width exceeds 768px
+    const handleChange = () => {
+      setIsOpen(checkbox.checked);
+    };
+
+    checkbox.addEventListener('change', handleChange);
+    return () => {
+      checkbox.removeEventListener('change', handleChange);
+    };
+  }, []);
+
+  // 2) Close automatically if screen width > 768px
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth > 768 && isOpen) {
+        // Uncheck the box, update state
         setIsOpen(false);
+        const checkbox = document.getElementById('hamburger-toggle');
+        if (checkbox) checkbox.checked = false;
       }
     };
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
+  // 3) If isOpen => show the side-drawer Modal
+  //    We also pass onChange to close the modal if the user hits ESC or backdrop
+  const closeModal = () => {
+    setIsOpen(false);
+    const checkbox = document.getElementById('hamburger-toggle');
+    if (checkbox) checkbox.checked = false;
+  };
+
   return (
     <div className={`relative ${className}`}>
-      {/* Hamburger icon + hidden checkbox */}
-      <HamburgerIcon
-        isOpen={isOpen}
-        transform={HamburgerTransform}
-        toggleMenu={toggleMenu}
-      />
-
-      {/* Side-drawer modal */}
-      <Modal
-        isOpen={isOpen}
-        onChange={toggleMenu}
-        modalId="hamburger-menu-modal"
-        width={Width}
-        closeButton={showCloseButton}
-      >
-        <nav>
-          <ul className="p-4">
-            {queryName.map((item) => (
-              <HamburgerMenuItem
-                key={item.href}
-                item={item}
-                depth={0}
-                isMenuOpen={isOpen}
-                closeMenu={closeMenu}
-              />
-            ))}
-          </ul>
-        </nav>
-      </Modal>
+      {isOpen && (
+        <Modal
+          isOpen={isOpen}
+          onChange={closeModal}
+          modalId="hamburger-menu-modal"
+          width={Width}
+          closeButton={showCloseButton}
+        >
+          <nav>
+            <ul className="p-4">
+              {queryName.map((item) => (
+                <HamburgerMenuItem
+                  key={item.href}
+                  item={item}
+                  depth={0}
+                  isMenuOpen={isOpen}
+                  closeMenu={closeModal}
+                />
+              ))}
+            </ul>
+          </nav>
+        </Modal>
+      )}
     </div>
   );
 };
 
 HamburgerMenu.propTypes = {
   queryName: PropTypes.array.isRequired,
-  Width: PropTypes.string, // e.g., "75%", "65%", etc.
+  Width: PropTypes.string,
   className: PropTypes.string,
-  showCloseButton: PropTypes.bool, // controls the close (X) button in Modal
-  HamburgerTransform: PropTypes.bool, // controls the line rotation animation
+  showCloseButton: PropTypes.bool,
+  HamburgerTransform: PropTypes.bool,
 };
 
 export default HamburgerMenu;

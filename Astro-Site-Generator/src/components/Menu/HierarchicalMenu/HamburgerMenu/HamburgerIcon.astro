@@ -1,0 +1,48 @@
+---
+/**
+ * This purely static Astro component renders:
+ *   - A hidden <input type="checkbox" id="hamburger-toggle" />
+ *   - A <label for="hamburger-toggle"> with 3 <span> lines
+ *     that transform into an X when the checkbox is checked.
+ *
+ * We rely on CSS for the transformation, and the React code
+ * can listen for `#hamburger-toggle`'s change event to open
+ * or close the side-drawer.
+ */
+---
+
+<style>
+    /* When the checkbox is checked, rotate the first line & push it down a bit */
+    #hamburger-toggle:checked + label span:nth-child(1) {
+      transform: rotate(45deg) translateY(0.625rem);
+    }
+    /* The second line disappears */
+    #hamburger-toggle:checked + label span:nth-child(2) {
+      opacity: 0;
+    }
+    /* The third line rotates the opposite way & shifts up */
+    #hamburger-toggle:checked + label span:nth-child(3) {
+      transform: rotate(-45deg) translateY(-0.625rem);
+    }
+  </style>
+  
+  <input type="checkbox" id="hamburger-toggle" class="hidden" />
+  
+  <label
+    for="hamburger-toggle"
+    class="flex flex-col justify-between w-8 h-6 cursor-pointer z-1100"
+  >
+    <!-- Line 1 -->
+    <span
+      class="block h-0.5 bg-gray-800 transition-transform duration-300"
+    ></span>
+    <!-- Line 2 -->
+    <span
+      class="block h-0.5 bg-gray-800 transition-opacity duration-300"
+    ></span>
+    <!-- Line 3 -->
+    <span
+      class="block h-0.5 bg-gray-800 transition-transform duration-300"
+    ></span>
+  </label>
+  
