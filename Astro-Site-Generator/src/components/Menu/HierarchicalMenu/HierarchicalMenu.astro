@@ -4,7 +4,19 @@ import BarMenu from './BarMenu/BarMenu.astro';
 import HamburgerMenu from './HamburgerMenu/HamburgerMenu.jsx';
 import HamburgerIcon from './HamburgerMenu/HamburgerIcon.astro';
 
-const { queryName, className = '', hamburgerOnly = false } = Astro.props;
+interface Props {
+  queryName: string;
+  className?: string;
+  hamburgerOnly?: boolean;
+  hamburgerTransform?: boolean; // NEW
+}
+
+const {
+  queryName,
+  className = '',
+  hamburgerOnly = false,
+  hamburgerTransform = true, // default to true, meaning lines -> X
+} = Astro.props as Props;
 
 const query = await executeQuery(queryName);
 ---
@@ -16,21 +28,17 @@ const query = await executeQuery(queryName);
     </div>
   )}
 
-  {/*
-    If hamburgerOnly === false => show hamburger on <md
-    If hamburgerOnly === true => show hamburger always
-  */}
   <div
     class={
       hamburgerOnly
-        ? "hamburger-menu block"
-        : "hamburger-menu block md:hidden"
+        ? "hamburger-menu block"       /* Show on all screens if hamburgerOnly */
+        : "hamburger-menu block md:hidden" /* Otherwise show only on <md */
     }
   >
-    <!-- 1) Our new static icon -->
-    <HamburgerIcon />
+    <!-- (A) The static hamburger icon (Astro) -->
+    <HamburgerIcon transform={hamburgerTransform} />
 
-    <!-- 2) The React side-drawer logic (loads client-side) -->
+    <!-- (B) The React side-drawer that listens to #hamburger-toggle -->
     <HamburgerMenu
       client:load
       queryName={query}
