@@ -6,13 +6,13 @@ import HamburgerMenuItem from './MenuItem.jsx';
 
 const HamburgerMenu = ({
   queryName,
-  Width = '75%',          // e.g. "60%", "400px", etc.
+  Width = '75%',
   className = '',
-  showCloseButton = true,  // Add an (X) inside the side-drawer
+  showCloseButton = true,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  // 1. Attach a listener to #hamburger-toggle so we know if it's checked
+  // 1) Listen for changes on #hamburger-toggle
   useEffect(() => {
     const checkbox = document.getElementById('hamburger-toggle');
     if (!checkbox) return;
@@ -22,46 +22,35 @@ const HamburgerMenu = ({
     };
 
     checkbox.addEventListener('change', handleChange);
-    return () => {
-      checkbox.removeEventListener('change', handleChange);
-    };
+    return () => checkbox.removeEventListener('change', handleChange);
   }, []);
 
-  // 2. Close automatically if screen width > 768px
+  // 2) Close if the window is resized above 768px
   useEffect(() => {
-    function handleResize() {
+    const handleResize = () => {
       if (window.innerWidth > 768 && isOpen) {
-        // uncheck the box to hide the menu
         setIsOpen(false);
         const checkbox = document.getElementById('hamburger-toggle');
-        if (checkbox) {
-          checkbox.checked = false;
-        }
+        if (checkbox) checkbox.checked = false;
       }
-    }
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isOpen]);
 
-  // 3. Provide a function to close from the modal's onChange (ESC / backdrop)
+  // 3) Called by the <Modal> if user hits ESC or backdrop
   const closeModal = () => {
     setIsOpen(false);
     const checkbox = document.getElementById('hamburger-toggle');
-    if (checkbox) {
-      checkbox.checked = false;
-    }
+    if (checkbox) checkbox.checked = false;
   };
 
   return (
     <div className={`relative ${className}`}>
-      {/*
-        We only render the <Modal> if isOpen = true.
-        The hamburger icon is Astro-based, so it's always in the DOM.
-      */}
       {isOpen && (
         <Modal
           isOpen={isOpen}
-          onChange={closeModal}   // Called if user hits ESC or backdrop
+          onChange={closeModal}
           modalId="hamburger-menu-modal"
           width={Width}
           closeButton={showCloseButton}
@@ -90,7 +79,6 @@ HamburgerMenu.propTypes = {
   Width: PropTypes.string,
   className: PropTypes.string,
   showCloseButton: PropTypes.bool,
-  HamburgerTransform: PropTypes.bool, // we keep this if you want to pass it in
 };
 
 export default HamburgerMenu;

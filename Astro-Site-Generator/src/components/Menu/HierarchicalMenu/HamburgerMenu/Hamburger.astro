@@ -1,0 +1,79 @@
+---
+import HamburgerMenu from './HamburgerMenu.jsx';
+
+/** 
+ * Single “Hamburger” combo component
+ * 
+ * Props:
+ *   - transform?: boolean
+ *       Controls whether the lines rotate into an X on check
+ *   - queryName: array of menu items
+ *   - Width?: string (width for side-drawer, e.g. "75%", "60%", etc.)
+ *   - className?: string (optional extra classes for the container)
+ *   - showCloseButton?: boolean (whether to show an (X) button inside the side-drawer)
+ */
+interface Props {
+  transform?: boolean;
+  queryName: any[]; 
+  Width?: string;
+  className?: string;
+  showCloseButton?: boolean;
+}
+
+const {
+  transform = true,
+  queryName = [],
+  Width = '75%',
+  className = '',
+  showCloseButton = true,
+} = Astro.props as Props;
+---
+
+<style>
+  /* When transform = true, we apply the “.transform” class wrapper */
+  .transform #hamburger-toggle:checked + label span:nth-child(1) {
+    transform: rotate(45deg) translateY(0.625rem);
+  }
+  .transform #hamburger-toggle:checked + label span:nth-child(2) {
+    opacity: 0;
+  }
+  .transform #hamburger-toggle:checked + label span:nth-child(3) {
+    transform: rotate(-45deg) translateY(-0.625rem);
+  }
+</style>
+
+<!-- 
+  The container has class="transform" if transform = true,
+  which triggers the lines -> X animation via the CSS above.
+-->
+<div class={transform ? 'transform' : ''}>
+  <!-- Hidden checkbox toggles the menu open/close (React listens for changes) -->
+  <input
+    type="checkbox"
+    id="hamburger-toggle"
+    class="hidden"
+  />
+
+  <!-- The label is our clickable “hamburger” icon -->
+  <label
+    for="hamburger-toggle"
+    class="flex flex-col justify-between w-8 h-6 cursor-pointer z-1100"
+  >
+    <!-- The 3 lines -->
+    <span class="block h-0.5 bg-gray-800 transition-transform duration-300"></span>
+    <span class="block h-0.5 bg-gray-800 transition-opacity duration-300"></span>
+    <span class="block h-0.5 bg-gray-800 transition-transform duration-300"></span>
+  </label>
+</div>
+
+<!-- 
+  The React side-drawer (HamburgerMenu.jsx)
+  listens to #hamburger-toggle being checked.
+-->
+<HamburgerMenu
+  client:load
+  queryName={queryName}
+  Width={Width}
+  showCloseButton={showCloseButton}
+  className={className}
+/>

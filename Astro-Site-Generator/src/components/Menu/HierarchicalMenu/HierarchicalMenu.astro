@@ -1,50 +1,35 @@
 ---
 import { executeQuery } from '../../../utils/queries/executeQuery.js';
 import BarMenu from './BarMenu/BarMenu.astro';
-import HamburgerMenu from './HamburgerMenu/HamburgerMenu.jsx';
-import HamburgerIcon from './HamburgerMenu/HamburgerIcon.astro';
 
-interface Props {
-  queryName: string;
-  className?: string;
-  hamburgerOnly?: boolean;
-  hamburgerTransform?: boolean; // NEW
-}
+/* Our newly combined hamburger component */
+import Hamburger from './HamburgerMenu/Hamburger.astro';
 
 const {
   queryName,
   className = '',
   hamburgerOnly = false,
-  hamburgerTransform = true, // default to true, meaning lines -> X
-} = Astro.props as Props;
+  hamburgerTransform = true, // if false, lines won't rotate into an X
+} = Astro.props;
 
 const query = await executeQuery(queryName);
 ---
 
 <nav class={`hierarchical-menu ${className}`} aria-label="Main Navigation">
+  {/* Show a “normal” bar menu on desktop if not hamburgerOnly */}
   {!hamburgerOnly && (
     <div class="bar-menu hidden md:block">
       <BarMenu className="bar-menu" queryName={query} />
     </div>
   )}
 
-  <div
-    class={
-      hamburgerOnly
-        ? "hamburger-menu block"       /* Show on all screens if hamburgerOnly */
-        : "hamburger-menu block md:hidden" /* Otherwise show only on <md */
-    }
-  >
-    <!-- (A) The static hamburger icon (Astro) -->
-    <HamburgerIcon transform={hamburgerTransform} />
-
-    <!-- (B) The React side-drawer that listens to #hamburger-toggle -->
-    <HamburgerMenu
-      client:load
+  {/* On mobile or if hamburgerOnly, show the hamburger */}
+  <div class={hamburgerOnly ? "block" : "block md:hidden"}>
+    <Hamburger
+      transform={hamburgerTransform}
       queryName={query}
       Width="60%"
       showCloseButton={true}
-      className="mt-0"
     />
   </div>
 </nav>
